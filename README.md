@@ -4,7 +4,11 @@ TODO: Write a project description
 
 ## Motivation
 
+TODO: Write motivation
+
 ## Goals
+
+TODO: Write goals
 
 ## Installation
 

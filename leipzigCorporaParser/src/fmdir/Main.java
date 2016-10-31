@@ -5,12 +5,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
+/**
+ * TODO: Write the description
+ *
+ *
+ */
 public class Main {
+    //Global properties
     public static Properties prop = new Properties();
 
     public static void main(String[] args) {
         readConfig();
 
+        /**
+         * Read target directory from config file, replace with default if empty
+         */
         String targetDir;
         if(prop.getProperty("corpusPath").isEmpty()) {
             targetDir = System.getProperty("user.dir") + "/resources";
@@ -18,11 +27,19 @@ public class Main {
             targetDir = prop.getProperty("corpusPath");
         }
 
+        //Alternate to above, needs testing (property key, default value)
+        //String targetDir = prop.getProperty("corpusPath", System.getProperty("user.dir") + "/resources");
+
+        //Get all file paths
         ArrayList<String> allFilePaths = getAllPaths(targetDir);
 
+        /**
+         * Iterate through all files, get all word frequencies, and pass them on to the database filler
+         */
         for (String path: allFilePaths) {
             HashMap<String, Integer> wordFreq = importWords(path);
 
+            //get the file name from the file path (last segment)
             String[] segments = path.split("\\\\");
             String fileName = segments[segments.length-1];
 
@@ -37,10 +54,21 @@ public class Main {
         }
     }
 
+    /**
+     * Fill the database
+     * @param wordFreq
+     * @param year
+     * @param language
+     */
     private static void fillDatabase(HashMap<String, Integer> wordFreq, String year, String language) {
         //TODO: fill the database
     }
 
+    /**
+     * Gets the language from the filename
+     * @param filename the file name
+     * @return the language
+     */
     private static String parseLanguage(String filename) {
         String language = "";
 
@@ -55,6 +83,11 @@ public class Main {
         return language;
     }
 
+    /**
+     * Gets the year from the filename
+     * @param filename the file name
+     * @return the year
+     */
     private static String parseYear(String filename) {
         String year = "";
 
@@ -69,7 +102,11 @@ public class Main {
         return year;
     }
 
-
+    /**
+     * Parses the word frequency from the specified file
+     * @param path the path to the text file
+     * @return the Key,Value word frequency map
+     */
     private static HashMap<String, Integer> importWords(String path) {
         HashMap<String, Integer> wordFreq = new HashMap<>();
 
@@ -100,6 +137,11 @@ public class Main {
         return wordFreq;
     }
 
+    /**
+     * Finds all files in a given directory
+     * @param targetDir the target directory
+     * @return the paths of all files in ArrayList form
+     */
     private static ArrayList<String> getAllPaths(String targetDir) {
         ArrayList<String> allPaths = new ArrayList<>();
 
@@ -117,6 +159,9 @@ public class Main {
         return allPaths;
     }
 
+    /**
+     * Reads the config file into the global properties variable
+     */
     private static void readConfig() {
         InputStream input = null;
 
