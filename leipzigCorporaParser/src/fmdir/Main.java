@@ -2,8 +2,10 @@ package fmdir;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * TODO: Write the description
@@ -15,6 +17,9 @@ public class Main {
     public static Properties prop = new Properties();
 
     public static void main(String[] args) {
+        Date startTime = new Date();
+        System.out.println("Starting time: " + startTime);
+
         readConfig();
 
         /**
@@ -52,6 +57,8 @@ public class Main {
 
             fillDatabase(wordFreq, year, language);
         }
+        System.out.println("End time: " + new Date());
+        System.out.println("Duration: " + (new Date().getSeconds() - startTime.getSeconds()) + " seconds");
     }
 
     /**
@@ -62,6 +69,19 @@ public class Main {
      */
     private static void fillDatabase(HashMap<String, Integer> wordFreq, String year, String language) {
         //TODO: fill the database
+
+        //TODO: get all words for the given language from the database
+
+        //TODO: Search the above selected words in the HashMap
+
+        //TODO: Write the word frequency in the database
+
+        //artificial delay
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
