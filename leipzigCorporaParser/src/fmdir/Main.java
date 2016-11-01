@@ -1,11 +1,9 @@
 package fmdir;
 
 import java.io.*;
-import java.util.ArrayList;
+import java.sql.*;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 /**
  * TODO: Write the description
@@ -15,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class Main {
     //Global properties
     public static Properties prop = new Properties();
+    public static int id = 0;
 
     public static void main(String[] args) {
         Date startTime = new Date();
@@ -55,10 +54,29 @@ public class Main {
             System.out.println(year + " " + language + ": " + wordFreq.size() + " words");
 //            System.out.println("test frequency: " + wordFreq.get("!"));
 
-            fillDatabase(wordFreq, year, language);
+//            fillDatabase(wordFreq, year, language);
         }
         System.out.println("End time: " + new Date());
         System.out.println("Duration: " + (new Date().getSeconds() - startTime.getSeconds()) + " seconds");
+
+
+        System.out.println("Testing database read: ");
+        try {
+            Class.forName("org.sqlite.JDBC");
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:C:/workspace/2016-FMdIR-Thema1/database/TESTwordfreq.sqlite");
+
+            Statement s = connection.createStatement();
+            ResultSet rs = s.executeQuery("SELECT * FROM words;");
+
+            int temp = 0;
+            while (rs.next() && temp<99){
+                temp++;
+                System.out.println(rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getString(3) + "\t\t" + rs.getString(4) + "\t" + rs.getString(5) + "\t" + rs.getString(6));
+            }
+            connection.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -76,12 +94,40 @@ public class Main {
 
         //TODO: Write the word frequency in the database
 
-        //artificial delay
         try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException e) {
+            Class.forName("org.sqlite.JDBC");
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:C:/workspace/2016-FMdIR-Thema1/database/TESTwordfreq.sqlite");
+            PreparedStatement row = connection.prepareStatement("insert into words (id, w_id, word, freq, language, year) values (?1, ?2, ?3, ?4, ?5, ?6);");
+
+            Iterator iterator = wordFreq.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry pair = (Map.Entry)iterator.next();
+
+                id++;
+                row.setInt(1, id);
+                row.setInt(2, 0);
+                row.setString(3, pair.getKey().toString());
+                row.setInt(4, (int) pair.getValue());
+                row.setString(5, language);
+                row.setString(6, year);
+                row.addBatch();
+            }
+
+            connection.setAutoCommit(false);
+            row.executeBatch();
+
+            connection.commit();
+            connection.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
+        //artificial delay
+//        try {
+//            TimeUnit.SECONDS.sleep(1);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
     }
 
     /**
@@ -148,9 +194,11 @@ public class Main {
             e.printStackTrace();
         } finally {
             try {
-                if (br != null)br.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
+                if (br != null) {
+                    br.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -191,8 +239,8 @@ public class Main {
             // load a properties file
             prop.load(input);
 
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         } finally {
             if (input != null) {
                 try {
