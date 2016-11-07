@@ -14,32 +14,34 @@ public class Main {
     //Global properties
     public static Properties prop = new Properties();
     public static int id = 0;
+    public static String driverName= "org.sqlite.JDBC";
 
     public static void main(String[] args) {
-        Date startTime = new Date();
-        System.out.println("Starting time: " + startTime);
+        long startTime = System.currentTimeMillis();
+        System.out.println("Starting time: " + new Date());
 
         readConfig();
 
         /**
          * Read target directory from config file, replace with default if empty
          */
-        String targetDir;
-        if(prop.getProperty("corpusPath").isEmpty()) {
-            targetDir = System.getProperty("user.dir") + "/resources";
-        } else {
-            targetDir = prop.getProperty("corpusPath");
-        }
-
-        //Alternate to above, needs testing (property key, default value)
-        //String targetDir = prop.getProperty("corpusPath", System.getProperty("user.dir") + "/resources");
+        String targetDir = prop.getProperty("corpusPath");
 
         //Get all file paths
         ArrayList<String> allFilePaths = getAllPaths(targetDir);
 
         /**
+         * CAUTION
+         * TEST FUNCTION
+         *
+         * DELETES ALL ROWS
+         */
+        deleteAllRows("words");
+
+        /**
          * Iterate through all files, get all word frequencies, and pass them on to the database filler
          */
+        int temp = 0;
         for (String path: allFilePaths) {
             HashMap<String, Integer> wordFreq = importWords(path);
 
@@ -50,29 +52,100 @@ public class Main {
             String year = parseYear(fileName);
             String language = parseLanguage(fileName);
 
-
-            System.out.println(year + " " + language + ": " + wordFreq.size() + " words");
+            temp++;
+            System.out.println("(" + temp + "/" + allFilePaths.size() + ") - " +  year + " " + language + ": " + wordFreq.size() + " words");
 //            System.out.println("test frequency: " + wordFreq.get("!"));
 
-//            fillDatabase(wordFreq, year, language);
+            fillDatabase(wordFreq, year, language);
+//            updateDatabase(wordFreq, year, language);
         }
+
         System.out.println("End time: " + new Date());
-        System.out.println("Duration: " + (new Date().getSeconds() - startTime.getSeconds()) + " seconds");
+        System.out.println("Duration: " + (System.currentTimeMillis() - startTime)/1000 + " seconds");
 
 
         System.out.println("Testing database read: ");
         try {
-            Class.forName("org.sqlite.JDBC");
-            Connection connection = DriverManager.getConnection("jdbc:sqlite:C:/workspace/2016-FMdIR-Thema1/database/TESTwordfreq.sqlite");
+            Class.forName(driverName).newInstance();
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:" + prop.getProperty("dbPath"));
 
             Statement s = connection.createStatement();
             ResultSet rs = s.executeQuery("SELECT * FROM words;");
+            int columnCount = rs.getMetaData().getColumnCount();
 
-            int temp = 0;
-            while (rs.next() && temp<99){
+            temp = 0;
+            while (rs.next() && temp<5){
                 temp++;
-                System.out.println(rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getString(3) + "\t\t" + rs.getString(4) + "\t" + rs.getString(5) + "\t" + rs.getString(6));
+                String allColumns = "";
+                for (int i=1; i<=columnCount; i++) allColumns += rs.getString(i) + "\t";
+                System.out.println(allColumns);
             }
+            connection.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void deleteAllRows(String dbName) {
+        System.out.println("Deleting table contents: " + dbName);
+        try {
+            Class.forName(driverName).newInstance();
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:" + prop.getProperty("dbPath"));
+
+            Statement s = connection.createStatement();
+
+            String query = "DELETE FROM " + dbName;
+            int deletedRows=s.executeUpdate(query);
+            if(deletedRows>0){
+                System.out.println("Deleted all rows in the table successfully...");
+            }else{
+                System.out.println("Table already empty.");
+            }
+            connection.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void updateDatabase(HashMap<String, Integer> wordFreq, String year, String language) {
+        //TODO: get all words for the given language from the database
+
+        //TODO: Search the above selected words in the HashMap
+
+        //TODO: Write the word frequency in the database
+
+        try {
+            Class.forName(driverName).newInstance();
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:" + prop.getProperty("dbPath"));
+
+            Statement s = connection.createStatement();
+//            ResultSet rs = s.executeQuery("SELECT language, word, " + year + " FROM words WHERE language='" + language + "';");
+
+            //TODO: correct following SQL update
+            PreparedStatement update = connection.prepareStatement("update words set " + year + " = ? WHERE word = ?");
+
+            for (Object kvPair : wordFreq.entrySet()) {
+                Map.Entry pair = (Map.Entry) kvPair;
+                String word = pair.getKey().toString();
+                int freq = (int) pair.getValue();
+
+                System.out.println("key/value: " + word + "  " + freq);
+//                ResultSet rs = s.executeQuery("SELECT language, word, " + year + " FROM words WHERE language='" + language + "' and word='" + word + "';");
+//                int temp = 0;
+//                while (rs.next() && temp<3){
+//                    temp++;
+//                    System.out.println(rs.getString(1) + "\t" + rs.getString(2)+ "\t" + rs.getString(3));
+//                }
+
+                update.setInt(1, freq);
+                update.setString(2, word);
+                update.addBatch();
+            }
+
+            connection.setAutoCommit(false);
+            update.executeBatch();
+
+            connection.commit();
             connection.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -86,48 +159,34 @@ public class Main {
      * @param language
      */
     private static void fillDatabase(HashMap<String, Integer> wordFreq, String year, String language) {
-        //TODO: fill the database
-
-        //TODO: get all words for the given language from the database
-
-        //TODO: Search the above selected words in the HashMap
-
-        //TODO: Write the word frequency in the database
-
         try {
-            Class.forName("org.sqlite.JDBC");
-            Connection connection = DriverManager.getConnection("jdbc:sqlite:C:/workspace/2016-FMdIR-Thema1/database/TESTwordfreq.sqlite");
-            PreparedStatement row = connection.prepareStatement("insert into words (id, w_id, word, freq, language, year) values (?1, ?2, ?3, ?4, ?5, ?6);");
+            Class.forName(driverName).newInstance();
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:" + prop.getProperty("dbPath"));
+            PreparedStatement insert = connection.prepareStatement("insert into words (id, w_id, word, language, located_in," + year + ") values (?1, ?2, ?3, ?4, ?5, ?6);");
 
-            Iterator iterator = wordFreq.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry pair = (Map.Entry)iterator.next();
+            for (Object kvPair : wordFreq.entrySet()) {
+                Map.Entry pair = (Map.Entry) kvPair;
+                String word = pair.getKey().toString();
+                int freq = (int) pair.getValue();
 
                 id++;
-                row.setInt(1, id);
-                row.setInt(2, 0);
-                row.setString(3, pair.getKey().toString());
-                row.setInt(4, (int) pair.getValue());
-                row.setString(5, language);
-                row.setString(6, year);
-                row.addBatch();
+                insert.setInt(1, id);
+                insert.setInt(2, 0);
+                insert.setString(3, word);
+                insert.setString(4, language);
+                insert.setString(5, null);
+                insert.setInt(6, freq);
+                insert.addBatch();
             }
 
             connection.setAutoCommit(false);
-            row.executeBatch();
+            insert.executeBatch();
 
             connection.commit();
             connection.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        //artificial delay
-//        try {
-//            TimeUnit.SECONDS.sleep(1);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
     }
 
     /**
@@ -165,6 +224,12 @@ public class Main {
         } else {
 //            System.out.println("Year: " + year);
         }
+
+        if(year.contains("-")) {
+            year = year.replace("-","_");
+        }
+
+        year = "freq_" + year;
         return year;
     }
 
@@ -249,6 +314,16 @@ public class Main {
                     e.printStackTrace();
                 }
             }
+        }
+
+        /**
+         * Read property, replace with default if empty
+         */
+        if(prop.getProperty("corpusPath").isEmpty()) {
+            prop.setProperty("corpusPath", System.getProperty("user.dir") + "/resources");
+        }
+        if(prop.getProperty("dbPath").isEmpty()) {
+            prop.setProperty("dbPath", "C:/workspace/2016-FMdIR-Thema1/database/AllFreq.sqlite");
         }
     }
 }
