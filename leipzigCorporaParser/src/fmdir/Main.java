@@ -36,7 +36,7 @@ public class Main {
          *
          * DELETES ALL ROWS
          */
-        deleteAllRows("words");
+//        deleteAllRows("words");
 
         /**
          * Iterate through all files, get all word frequencies, and pass them on to the database filler
@@ -56,14 +56,22 @@ public class Main {
             System.out.println("(" + temp + "/" + allFilePaths.size() + ") - " +  year + " " + language + ": " + wordFreq.size() + " words");
 //            System.out.println("test frequency: " + wordFreq.get("!"));
 
-            fillDatabase(wordFreq, year, language);
-//            updateDatabase(wordFreq, year, language);
+//            fillDatabase(wordFreq, year, language);
+            updateDatabase(wordFreq, year, language);
         }
 
         System.out.println("End time: " + new Date());
         System.out.println("Duration: " + (System.currentTimeMillis() - startTime)/1000 + " seconds");
 
 
+        printDB(5);
+    }
+
+    /**
+     * DEBUG function
+     * @param rowCount
+     */
+    private static void printDB(int rowCount) {
         System.out.println("Testing database read: ");
         try {
             Class.forName(driverName).newInstance();
@@ -73,8 +81,8 @@ public class Main {
             ResultSet rs = s.executeQuery("SELECT * FROM words;");
             int columnCount = rs.getMetaData().getColumnCount();
 
-            temp = 0;
-            while (rs.next() && temp<5){
+            int temp = 0;
+            while (rs.next() && temp<rowCount){
                 temp++;
                 String allColumns = "";
                 for (int i=1; i<=columnCount; i++) allColumns += rs.getString(i) + "\t";
@@ -108,37 +116,23 @@ public class Main {
     }
 
     private static void updateDatabase(HashMap<String, Integer> wordFreq, String year, String language) {
-        //TODO: get all words for the given language from the database
-
-        //TODO: Search the above selected words in the HashMap
-
-        //TODO: Write the word frequency in the database
-
         try {
             Class.forName(driverName).newInstance();
             Connection connection = DriverManager.getConnection("jdbc:sqlite:" + prop.getProperty("dbPath"));
 
-            Statement s = connection.createStatement();
+//            Statement s = connection.createStatement();
 //            ResultSet rs = s.executeQuery("SELECT language, word, " + year + " FROM words WHERE language='" + language + "';");
 
-            //TODO: correct following SQL update
-            PreparedStatement update = connection.prepareStatement("update words set " + year + " = ? WHERE word = ?");
+            PreparedStatement update = connection.prepareStatement("update words set " + year + " = ?1 WHERE word = ?2 and language = ?3");
 
             for (Object kvPair : wordFreq.entrySet()) {
                 Map.Entry pair = (Map.Entry) kvPair;
                 String word = pair.getKey().toString();
                 int freq = (int) pair.getValue();
 
-                System.out.println("key/value: " + word + "  " + freq);
-//                ResultSet rs = s.executeQuery("SELECT language, word, " + year + " FROM words WHERE language='" + language + "' and word='" + word + "';");
-//                int temp = 0;
-//                while (rs.next() && temp<3){
-//                    temp++;
-//                    System.out.println(rs.getString(1) + "\t" + rs.getString(2)+ "\t" + rs.getString(3));
-//                }
-
                 update.setInt(1, freq);
                 update.setString(2, word);
+                update.setString(3, language);
                 update.addBatch();
             }
 
@@ -320,9 +314,11 @@ public class Main {
          * Read property, replace with default if empty
          */
         if(prop.getProperty("corpusPath").isEmpty()) {
+            System.out.println("corpusPath empty! Using default path");
             prop.setProperty("corpusPath", System.getProperty("user.dir") + "/resources");
         }
         if(prop.getProperty("dbPath").isEmpty()) {
+            System.out.println("dbPath empty! Using default path");
             prop.setProperty("dbPath", "C:/workspace/2016-FMdIR-Thema1/database/AllFreq.sqlite");
         }
     }
