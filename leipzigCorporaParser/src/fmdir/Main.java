@@ -37,10 +37,17 @@ public class Main {
         DatabaseTools.deleteAllRows("words");
 
         //Import translations CSV
-        HashMap<String, ArrayList<Translation>> allTranslations = FileTools.importCSVbyLang(prop.getProperty("corpusPath") + "/sparql.csv");
+        HashMap<String, ArrayList<Translation>> allTranslations = FileTools.importCSVbyLang(prop.getProperty("translationPath"));
 
         //Get all file paths for the .txt files
-        ArrayList<String> allFilePaths = FileTools.getAllPathsFrom(prop.getProperty("corpusPath") + "/txt");
+        ArrayList<String> allFilePaths = FileTools.getAllPathsFrom(prop.getProperty("corpusPath"));
+
+        /**
+         * TEST FUNCTION
+         *
+         * IGNORES SMALLER CORPORA WITH THE SAME YEAR AND LANGUAGE
+         */
+        allFilePaths = FileTools.deleteSmaller(allFilePaths);
 
         //Iterate through all files, get all word frequencies, and pass them on to the database filler
         int currentCorpora = 0;
@@ -56,10 +63,10 @@ public class Main {
             String language = FileTools.parseLanguage(fileName);
 
             String tempLang = "";
-            if (language.equals("eng")) {
+            if (language.contains("eng")) {
                 tempLang = "en";
             }
-            if (language.equals("deu")) {
+            if (language.contains("deu")) {
                 tempLang = "de";
             }
 
@@ -68,9 +75,9 @@ public class Main {
 
                 System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFilePaths.size() + ") - " +  year + " " + language + ": " + wordFreq.size() + " words, " + translations.size() + " translations" + ANSI_RESET);
 
-                DatabaseTools.fillDatabase(translations, wordFreq, year, language);
+//                DatabaseTools.fillDatabase(translations, wordFreq, year, language);
             } else {
-                System.out.println(ANSI_YELLOW + "Language missing or mismatch: " + language + ANSI_RESET);
+//                System.out.println(ANSI_YELLOW + "Language missing or mismatch: " + language + ANSI_RESET);
             }
 
 //            DatabaseTools.writeAllWordFrequencies(wordFreq, year, language);
@@ -111,13 +118,27 @@ public class Main {
         /**
          * Read property, replace with default if empty
          */
+        String defaultPath = "";
         if(prop.getProperty("corpusPath").isEmpty()) {
-            System.out.println("corpusPath empty! Using default path");
-            prop.setProperty("corpusPath", System.getProperty("user.dir") + "/resources");
+
+            defaultPath = System.getProperty("user.dir") + "/resources" + "/txt";
+
+            System.out.println("corpusPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
+            prop.setProperty("corpusPath", defaultPath);
+        }
+        if(prop.getProperty("translationPath").isEmpty()) {
+
+            defaultPath = System.getProperty("user.dir") + "/resources/sparql.csv";
+
+            System.out.println("translationPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
+            prop.setProperty("translationPath", defaultPath);
         }
         if(prop.getProperty("dbPath").isEmpty()) {
-            System.out.println("dbPath empty! Using default path");
-            prop.setProperty("dbPath", "C:/workspace/2016-FMdIR-Thema1/database/translations.sqlite");
+
+            defaultPath = "C:/workspace/2016-FMdIR-Thema1/database/translations.sqlite";
+
+            System.out.println("dbPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
+            prop.setProperty("dbPath", defaultPath);
         }
     }
 }

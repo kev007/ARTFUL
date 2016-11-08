@@ -45,6 +45,14 @@ public class DatabaseTools {
                 for (Translation translation: translations) {
                     searched++;
 
+                    //TODO: REPLACE PRIMARY KEY WITH (word,language)
+                    //then: https://coderanch.com/t/538298/databases/Checking-record-exists
+                    //or: http://stackoverflow.com/a/8818028
+                    //or: http://stackoverflow.com/a/20817124
+                    //or maybe: SELECT count(*) FROM foos WHERE bar = 'bar'
+
+
+
                     id++;
                     int w_id = translation.id;
                     String word = translation.citylabel;
@@ -72,7 +80,7 @@ public class DatabaseTools {
                 System.out.println(searched + " words queried and compared in\t" + (float)(commitStart-updateStart)/1000 + " seconds");
                 insert.executeBatch();
                 connection.commit();
-                System.out.println(searched + " word frequencies written in\t" + (float)(System.currentTimeMillis()-commitStart)/1000 + " seconds");
+                System.out.println(searched + " word frequencies written in \t" + (float)(System.currentTimeMillis()-commitStart)/1000 + " seconds");
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println(ANSI_YELLOW + "ERROR. Rolling back changes." + ANSI_RESET);
@@ -186,7 +194,6 @@ public class DatabaseTools {
      * @param rowCount
      */
     public static void TESTprintDB(int rowCount) {
-        System.out.println("Testing database read: ");
         try {
             Class.forName(driverName).newInstance();
             Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
