@@ -38,15 +38,9 @@ public class Main {
 
         //Import translations CSV
         HashMap<String, ArrayList<Translation>> allTranslations = FileTools.importCSVbyLang(prop.getProperty("corpusPath") + "/sparql.csv");
-        Iterator it = allTranslations.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next();
-            System.out.println(pair.getKey() + " = ");
-        }
 
         //Get all file paths for the .txt files
         ArrayList<String> allFilePaths = FileTools.getAllPathsFrom(prop.getProperty("corpusPath") + "/txt");
-
 
         //Iterate through all files, get all word frequencies, and pass them on to the database filler
         int currentCorpora = 0;

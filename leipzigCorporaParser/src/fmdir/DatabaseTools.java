@@ -45,29 +45,34 @@ public class DatabaseTools {
                 for (Translation translation: translations) {
                     searched++;
 
-                    int id = translation.id;
+                    id++;
+                    int w_id = translation.id;
                     String word = translation.citylabel;
-                    String locatedIn = translation.locatedIn;
 //                    String language = translation.language;
+                    String locatedIn = translation.locatedIn;
+
+
+
+                    insert.setInt(1, id);
+                    insert.setInt(2, w_id);
+                    insert.setString(3, word);
+                    insert.setString(4, language);
+                    insert.setString(5, locatedIn);
 
                     if (wordFreq.containsKey(word)) {
                         found++;
-
-                        insert.setInt(1, found);
-                        insert.setInt(2, 0);
-                        insert.setString(3, word);
-                        insert.setString(4, language);
-                        insert.setString(5, null);
                         insert.setInt(6, wordFreq.get(word));
-                        insert.addBatch();
                     }
+
+                    insert.addBatch();
                 }
 
                 long commitStart = System.currentTimeMillis();
+                System.out.println(found + " matches found");
                 System.out.println(searched + " words queried and compared in\t" + (float)(commitStart-updateStart)/1000 + " seconds");
                 insert.executeBatch();
                 connection.commit();
-                System.out.println(found + " word frequencies updated in\t" + (float)(System.currentTimeMillis()-commitStart)/1000 + " seconds");
+                System.out.println(searched + " word frequencies written in\t" + (float)(System.currentTimeMillis()-commitStart)/1000 + " seconds");
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println(ANSI_YELLOW + "ERROR. Rolling back changes." + ANSI_RESET);
