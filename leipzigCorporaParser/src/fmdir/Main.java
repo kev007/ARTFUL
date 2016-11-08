@@ -45,9 +45,18 @@ public class Main {
         /**
          * TEST FUNCTION
          *
-         * IGNORES SMALLER CORPORA WITH THE SAME YEAR AND LANGUAGE
+         * Deletes SMALLER CORPORA WITH THE SAME YEAR AND LANGUAGE
          */
         allFilePaths = FileTools.deleteSmaller(allFilePaths);
+
+        System.out.println("\nContinue to: Parsing and Importing?");
+
+        Scanner scanner = new Scanner(System.in);
+        String userInput = scanner.next();
+        if(userInput.equalsIgnoreCase("y") || userInput.equalsIgnoreCase("yes")) {
+        } else{
+            System.exit(0);
+        }
 
         //Iterate through all files, get all word frequencies, and pass them on to the database filler
         int currentCorpora = 0;
@@ -75,7 +84,7 @@ public class Main {
 
                 System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFilePaths.size() + ") - " +  year + " " + language + ": " + wordFreq.size() + " words, " + translations.size() + " translations" + ANSI_RESET);
 
-//                DatabaseTools.fillDatabase(translations, wordFreq, year, language);
+                DatabaseTools.fillDatabase(translations, wordFreq, year, language);
             } else {
 //                System.out.println(ANSI_YELLOW + "Language missing or mismatch: " + language + ANSI_RESET);
             }
@@ -128,7 +137,7 @@ public class Main {
         }
         if(prop.getProperty("translationPath").isEmpty()) {
 
-            defaultPath = System.getProperty("user.dir") + "/resources/sparql.csv";
+            defaultPath = System.getProperty("user.dir") + "/resources/translations/cities.csv";
 
             System.out.println("translationPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("translationPath", defaultPath);

@@ -213,7 +213,7 @@ public class FileTools {
             int sizeRankNew = getCorporaSize(fileName);
 
             if (sizeRankNew == 0) {
-                System.out.println("bad file syntax: " + fileName);
+                System.out.println(ANSI_WHITE + "bad file syntax: " + fileName + ANSI_RESET);
             } else if (sizeRankNew < 0) {
                 //compressed file. do nothing. for now.
             } else if (largestRightPath.containsKey(leftPath)) {
@@ -240,7 +240,7 @@ public class FileTools {
             newFilePaths.add(folder + pair.getKey()+ "" + pair.getValue());
         }
 
-        if (oldFilePaths.size() > -1) {
+        if (oldFilePaths.size() > 0) {
             deleteFiles(oldFilePaths);
         }
 
@@ -271,14 +271,6 @@ public class FileTools {
         } else {
             System.out.println("Maybe next time");
         }
-
-
-        System.out.println("Continue?");
-
-        scanner = new Scanner(System.in);
-        userInput = scanner.next();
-        if(userInput.equalsIgnoreCase("y") || userInput.equalsIgnoreCase("yes")) {
-        }
     }
 
     private static int getCorporaSize(String path) {
@@ -287,33 +279,34 @@ public class FileTools {
 
         int sizeRank;
         switch (size) {
-            case "10K-words.txt": sizeRank = 1; break;
-            case "30K-words.txt": sizeRank = 2; break;
-            case "100K-words.txt": sizeRank = 3; break;
-            case "300K-words.txt": sizeRank = 4; break;
-            case "1M-words.txt": sizeRank = 5; break;
-            case "3M-words.txt": sizeRank = 6; break;
+            case "10K-words.txt": sizeRank = 5; break;
+            case "30K-words.txt": sizeRank = 10; break;
+            case "100K-words.txt": sizeRank = 15; break;
+            case "300K-words.txt": sizeRank = 20; break;
+            case "1M-words.txt": sizeRank = 25; break;
+            case "3M-words.txt": sizeRank = 30; break;
 
-            case "10K-mysql.tar.gz": sizeRank = -1; break;
-            case "30K-mysql.tar.gz": sizeRank = -2; break;
-            case "100K-mysql.tar.gz": sizeRank = -3; break;
-            case "300K-mysql.tar.gz": sizeRank = -4; break;
-            case "1M-mysql.tar.gz": sizeRank = -5; break;
-            case "3M-mysql.tar.gz": sizeRank = -6; break;
+            case "10K-text.tar.gz": sizeRank = 4; break;
+            case "30K-text.tar.gz": sizeRank = 9; break;
+            case "100K-text.tar.gz": sizeRank = 14; break;
+            case "300K-text.tar.gz": sizeRank = 19; break;
+            case "1M-text.tar.gz": sizeRank = 24; break;
+            case "3M-text.tar.gz": sizeRank = 29; break;
 
-            case "10K-text.tar.gz": sizeRank = -1; break;
-            case "30K-text.tar.gz": sizeRank = -2; break;
-            case "100K-text.tar.gz": sizeRank = -3; break;
-            case "300K-text.tar.gz": sizeRank = -4; break;
-            case "1M-text.tar.gz": sizeRank = -5; break;
-            case "3M-text.tar.gz": sizeRank = -6; break;
+            case "10K.tar.gz": sizeRank = 3; break;
+            case "30K.tar.gz": sizeRank = 8; break;
+            case "100K.tar.gz": sizeRank = 13; break;
+            case "300K.tar.gz": sizeRank = 18; break;
+            case "1M.tar.gz": sizeRank = 23; break;
+            case "3M.tar.gz": sizeRank = 29; break;
 
-            case "10K.tar.gz": sizeRank = -1; break;
-            case "30K.tar.gz": sizeRank = -2; break;
-            case "100K.tar.gz": sizeRank = -3; break;
-            case "300K.tar.gz": sizeRank = -4; break;
-            case "1M.tar.gz": sizeRank = -5; break;
-            case "3M.tar.gz": sizeRank = -6; break;
+            case "10K-mysql.tar.gz": sizeRank = 1; break;
+            case "30K-mysql.tar.gz": sizeRank = 3; break;
+            case "100K-mysql.tar.gz": sizeRank = 5; break;
+            case "300K-mysql.tar.gz": sizeRank = 7; break;
+            case "1M-mysql.tar.gz": sizeRank = 9; break;
+            case "3M-mysql.tar.gz": sizeRank = 11; break;
+
 
             default: sizeRank = 0; break;
         }
