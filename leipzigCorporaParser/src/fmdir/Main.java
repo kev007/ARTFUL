@@ -37,16 +37,21 @@ public class Main {
         DatabaseTools.deleteAllRows("words");
 
         //Import translations CSV
-        //TODO: import csv
-        //Type translations = FileTools.importCSV();
+        HashMap<String, ArrayList<Translation>> allTranslations = FileTools.importCSVbyLang(prop.getProperty("corpusPath") + "/sparql.csv");
+        Iterator it = allTranslations.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            System.out.println(pair.getKey() + " = ");
+        }
 
         //Get all file paths for the .txt files
         ArrayList<String> allFilePaths = FileTools.getAllPathsFrom(prop.getProperty("corpusPath") + "/txt");
 
 
         //Iterate through all files, get all word frequencies, and pass them on to the database filler
-        int temp = 0;
+        int currentCorpora = 0;
         for (String path: allFilePaths) {
+            currentCorpora++;
             HashMap<String, Integer> wordFreq = FileTools.importWordFrequencies(path);
 
             //get the file name from the file path (last segment)
@@ -56,10 +61,24 @@ public class Main {
             String year = FileTools.parseYear(fileName);
             String language = FileTools.parseLanguage(fileName);
 
-            temp++;
-            System.out.println(ANSI_BLUE + "(" + temp + "/" + allFilePaths.size() + ") - " +  year + " " + language + ": " + wordFreq.size() + " words" + ANSI_RESET);
+            String tempLang = "";
+            if (language.equals("eng")) {
+                tempLang = "en";
+            }
+            if (language.equals("deu")) {
+                tempLang = "de";
+            }
 
-//            DatabaseTools.fillDatabase(translations, wordFreq, year, language);
+            if(allTranslations.containsKey(tempLang)) {
+                ArrayList<Translation> translations = allTranslations.get(tempLang);
+
+                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFilePaths.size() + ") - " +  year + " " + language + ": " + wordFreq.size() + " words, " + translations.size() + " translations" + ANSI_RESET);
+
+                DatabaseTools.fillDatabase(translations, wordFreq, year, language);
+            } else {
+                System.out.println(ANSI_YELLOW + "Language missing or mismatch: " + language + ANSI_RESET);
+            }
+
 //            DatabaseTools.writeAllWordFrequencies(wordFreq, year, language);
 //            DatabaseTools.updateWordFrequencies(wordFreq, year, language);
         }
@@ -104,7 +123,7 @@ public class Main {
         }
         if(prop.getProperty("dbPath").isEmpty()) {
             System.out.println("dbPath empty! Using default path");
-            prop.setProperty("dbPath", "C:/workspace/2016-FMdIR-Thema1/database/AllFreq.sqlite");
+            prop.setProperty("dbPath", "C:/workspace/2016-FMdIR-Thema1/database/translations.sqlite");
         }
     }
 }

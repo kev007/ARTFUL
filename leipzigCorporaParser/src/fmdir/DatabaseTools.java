@@ -25,11 +25,12 @@ public class DatabaseTools {
 
     /**
      * Fill the database
+     * @param translations
      * @param wordFreq
      * @param year
      * @param language
      */
-    public static void fillDatabase(HashMap<String, Integer> wordFreq, String year, String language) {
+    public static void fillDatabase(ArrayList<Translation> translations, HashMap<String, Integer> wordFreq, String year, String language) {
         try {
             Class.forName(driverName).newInstance();
             Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
@@ -41,29 +42,26 @@ public class DatabaseTools {
 
                 int searched = 0;
                 int found = 0;
-//                while (x.next()){
-//                    searched++;
-//
-//                    String word = x.getString(1);
-//
-//                    if (wordFreq.containsKey(word)) {
-//                        found++;
-//
-//                    }
-//                }
-//                Map.Entry pair = (Map.Entry) kvPair;
-//                String word = pair.getKey().toString();
-//                int freq = (int) pair.getValue();
+                for (Translation translation: translations) {
+                    searched++;
 
-                String word = "";
-                int freq = 0;
-                insert.setInt(1, found);
-                insert.setInt(2, 0);
-                insert.setString(3, word);
-                insert.setString(4, language);
-                insert.setString(5, null);
-                insert.setInt(6, freq);
-                insert.addBatch();
+                    int id = translation.id;
+                    String word = translation.citylabel;
+                    String locatedIn = translation.locatedIn;
+//                    String language = translation.language;
+
+                    if (wordFreq.containsKey(word)) {
+                        found++;
+
+                        insert.setInt(1, found);
+                        insert.setInt(2, 0);
+                        insert.setString(3, word);
+                        insert.setString(4, language);
+                        insert.setString(5, null);
+                        insert.setInt(6, wordFreq.get(word));
+                        insert.addBatch();
+                    }
+                }
 
                 long commitStart = System.currentTimeMillis();
                 System.out.println(searched + " words queried and compared in\t" + (float)(commitStart-updateStart)/1000 + " seconds");
@@ -71,7 +69,7 @@ public class DatabaseTools {
                 connection.commit();
                 System.out.println(found + " word frequencies updated in\t" + (float)(System.currentTimeMillis()-commitStart)/1000 + " seconds");
             } catch (Exception e) {
-//                e.printStackTrace();
+                e.printStackTrace();
                 System.out.println(ANSI_YELLOW + "ERROR. Rolling back changes." + ANSI_RESET);
                 connection.rollback();
             } finally {
@@ -120,7 +118,7 @@ public class DatabaseTools {
                 connection.commit();
                 System.out.println(found + " word frequencies added in\t" + (float)(System.currentTimeMillis()-commitStart)/1000 + " seconds");
             } catch (Exception e) {
-                e.printStackTrace();
+//                e.printStackTrace();
                 System.out.println(ANSI_YELLOW + "ERROR. Rolling back changes." + ANSI_RESET);
                 connection.rollback();
             } finally {
