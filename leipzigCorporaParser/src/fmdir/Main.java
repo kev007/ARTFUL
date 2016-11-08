@@ -1,8 +1,6 @@
 package fmdir;
 
 import java.io.*;
-import java.sql.*;
-import java.text.NumberFormat;
 import java.util.*;
 import java.util.Date;
 
@@ -29,7 +27,6 @@ public class Main {
         long startTime = System.currentTimeMillis();
         System.out.println(ANSI_CYAN + "Start time: " + new Date() + ANSI_RESET);
         readConfig();
-        DatabaseTools.prop = prop;
 
         /**
          * CAUTION
@@ -39,34 +36,32 @@ public class Main {
          */
         DatabaseTools.deleteAllRows("words");
 
-        /**
-         * Read target directory from config file, replace with default if empty
-         */
-        String targetDir = prop.getProperty("corpusPath");
+        //Import translations CSV
+        //TODO: import csv
+        //Type translations = FileTools.importCSV();
 
         //Get all file paths for the .txt files
-        ArrayList<String> allFilePaths = txtTools.getAllPaths(targetDir + "/txt");
+        ArrayList<String> allFilePaths = FileTools.getAllPathsFrom(prop.getProperty("corpusPath") + "/txt");
 
-        /**
-         * Iterate through all files, get all word frequencies, and pass them on to the database filler
-         */
+
+        //Iterate through all files, get all word frequencies, and pass them on to the database filler
         int temp = 0;
         for (String path: allFilePaths) {
-            HashMap<String, Integer> wordFreq = txtTools.importWords(path);
+            HashMap<String, Integer> wordFreq = FileTools.importWordFrequencies(path);
 
             //get the file name from the file path (last segment)
             String[] segments = path.split("\\\\");
             String fileName = segments[segments.length-1];
 
-            String year = parseYear(fileName);
-            String language = parseLanguage(fileName);
+            String year = FileTools.parseYear(fileName);
+            String language = FileTools.parseLanguage(fileName);
 
             temp++;
             System.out.println(ANSI_BLUE + "(" + temp + "/" + allFilePaths.size() + ") - " +  year + " " + language + ": " + wordFreq.size() + " words" + ANSI_RESET);
-//            System.out.println("test frequency: " + wordFreq.get("!"));
 
-            DatabaseTools.fillDatabase(wordFreq, year, language);
-//            DatabaseTools.updateDatabase(wordFreq, year, language);
+//            DatabaseTools.fillDatabase(translations, wordFreq, year, language);
+//            DatabaseTools.writeAllWordFrequencies(wordFreq, year, language);
+//            DatabaseTools.updateWordFrequencies(wordFreq, year, language);
         }
 
         System.out.println(ANSI_CYAN + "End time: " + new Date() + ANSI_RESET);
@@ -74,50 +69,6 @@ public class Main {
 
         DatabaseTools.printCount();
 //        DatabaseTools.TESTprintDB(5);
-    }
-
-    /**
-     * Gets the language from the filename
-     * @param filename the file name
-     * @return the language
-     */
-    private static String parseLanguage(String filename) {
-        String language = "";
-
-        String[] segments = filename.split("_");
-        language = segments[0];
-
-        if ("".equals(language)) {
-            System.out.println("No valid language found: " + filename);
-        } else {
-//            System.out.println("Language: " + language);
-        }
-        return language;
-    }
-
-    /**
-     * Gets the year from the filename
-     * @param filename the file name
-     * @return the year
-     */
-    private static String parseYear(String filename) {
-        String year = "";
-
-        String[] segments = filename.split("_");
-        year = segments[2];
-
-        if ("".equals(year)) {
-            System.out.println("No valid year found: " + filename);
-        } else {
-//            System.out.println("Year: " + year);
-        }
-
-        if(year.contains("-")) {
-            year = year.replace("-","_");
-        }
-
-        year = "freq_" + year;
-        return year;
     }
 
     /**

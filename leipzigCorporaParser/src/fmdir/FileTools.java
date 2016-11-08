@@ -8,13 +8,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 
-public class txtTools {
+public class FileTools {
     /**
      * Parses the word frequency from the specified file
      * @param path the path to the text file
      * @return the Key,Value word frequency map
      */
-    public static HashMap<String, Integer> importWords(String path) {
+    public static HashMap<String, Integer> importWordFrequencies(String path) {
         HashMap<String, Integer> wordFreq = new HashMap<>();
 
         BufferedReader br = null;
@@ -51,7 +51,7 @@ public class txtTools {
      * @param targetDir the target directory
      * @return the paths of all files in ArrayList form
      */
-    public static ArrayList<String> getAllPaths(String targetDir) {
+    public static ArrayList<String> getAllPathsFrom(String targetDir) {
         ArrayList<String> allPaths = new ArrayList<>();
 
         File dir = new File(targetDir);
@@ -67,4 +67,50 @@ public class txtTools {
 
         return allPaths;
     }
+
+
+    /**
+     * Gets the language from the filename
+     * @param filename the file name
+     * @return the language
+     */
+    public static String parseLanguage(String filename) {
+        String language = "";
+
+        String[] segments = filename.split("_");
+        language = segments[0];
+
+        if ("".equals(language)) {
+            System.out.println("No valid language found: " + filename);
+        } else {
+//            System.out.println("Language: " + language);
+        }
+        return language;
+    }
+
+    /**
+     * Gets the year from the filename
+     * @param filename the file name
+     * @return the year
+     */
+    public static String parseYear(String filename) {
+        String year = "";
+
+        String[] segments = filename.split("_");
+        year = segments[2];
+
+        if ("".equals(year)) {
+            System.out.println("No valid year found: " + filename);
+        } else {
+//            System.out.println("Year: " + year);
+        }
+
+        if(year.contains("-")) {
+            year = year.replace("-","_");
+        }
+
+        year = "freq_" + year;
+        return year;
+    }
+
 }
