@@ -49,7 +49,10 @@ public class FileTools {
                     lang = segments[3];
                 }
                 //TODO: proper language thingamajig
-                lang = doLangTranslation(lang);
+                lang = parseCSVStuff(lang);
+                int id = Integer.parseInt(segments[0]);
+                String citylabel = parseCSVStuff(segments[1]);
+                String locatedIn = parseCSVStuff(segments[2]);
 
                 //TODO: make below code readable
                 ArrayList<Translation> translation = new ArrayList<>();
@@ -58,7 +61,7 @@ public class FileTools {
                 } else {
                     translation = translations.get(lang);
                 }
-                translation.add(new Translation(Integer.parseInt(segments[0]),segments[1],segments[2],lang));
+                translation.add(new Translation(id, citylabel, locatedIn, lang));
                 translations.put(lang, translation);
 
                 found++;
@@ -81,7 +84,7 @@ public class FileTools {
         return translations;
     }
 
-    private static String doLangTranslation(String lang) {
+    private static String parseCSVStuff(String lang) {
 
         lang = lang.replace("\"", "");
 
