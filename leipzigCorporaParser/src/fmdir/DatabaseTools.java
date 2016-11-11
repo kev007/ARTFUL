@@ -71,22 +71,27 @@ public class DatabaseTools {
                             update.setInt(2, rs.getInt(1));
                             update.addBatch();
                         } else {
+                            id++;
+                            insert.setInt(1, id);
                             insert.setInt(2, w_id);
                             insert.setString(3, word);
                             insert.setString(4, language);
                             insert.setString(5, locatedIn);
                             insert.setInt(6, wordFreq.get(word));
+                            insert.addBatch();
                         }
                     }
-                    insert.addBatch();
+                    insert.executeBatch();
+                    update.executeBatch();
+                    connection.commit();
                 }
 
                 long commitStart = System.currentTimeMillis();
                 System.out.println(found + " matches found");
                 System.out.println(searched + " words queried and compared in\t" + (float)(commitStart-updateStart)/1000 + " seconds");
-                insert.executeBatch();
-                update.executeBatch();
-                connection.commit();
+//                insert.executeBatch();
+//                update.executeBatch();
+//                connection.commit();
                 System.out.println(searched + " word frequencies written in \t" + (float)(System.currentTimeMillis()-commitStart)/1000 + " seconds");
             } catch (Exception e) {
                 e.printStackTrace();
