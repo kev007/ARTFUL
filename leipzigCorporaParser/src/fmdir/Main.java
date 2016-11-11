@@ -49,14 +49,14 @@ public class Main {
          */
         allFilePaths = FileTools.deleteSmaller(allFilePaths);
 
-        System.out.println("\nContinue to: Parsing and Importing?");
-
-        Scanner scanner = new Scanner(System.in);
-        String userInput = scanner.next();
-        if(userInput.equalsIgnoreCase("y") || userInput.equalsIgnoreCase("yes")) {
-        } else{
-            System.exit(0);
-        }
+//        System.out.println("\nContinue to: Parsing and Importing?");
+//
+//        Scanner scanner = new Scanner(System.in);
+//        String userInput = scanner.next();
+//        if(userInput.equalsIgnoreCase("y") || userInput.equalsIgnoreCase("yes")) {
+//        } else{
+//            System.exit(0);
+//        }
 
         //Iterate through all files, get all word frequencies, and pass them on to the database filler
         int currentCorpora = 0;
