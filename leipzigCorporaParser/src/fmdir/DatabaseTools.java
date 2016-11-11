@@ -88,11 +88,11 @@ public class DatabaseTools {
 
                 long commitStart = System.currentTimeMillis();
                 System.out.println(found + " matches found");
-                System.out.println(searched + " words queried and compared in\t" + (float)(commitStart-updateStart)/1000 + " seconds");
+                System.out.println(searched + " words queried, compared, and written to DB in\t" + (float)(commitStart-updateStart)/1000 + " seconds");
 //                insert.executeBatch();
 //                update.executeBatch();
 //                connection.commit();
-                System.out.println(searched + " word frequencies written in \t" + (float)(System.currentTimeMillis()-commitStart)/1000 + " seconds");
+//                System.out.println(searched + " word frequencies written in \t" + (float)(System.currentTimeMillis()-commitStart)/1000 + " seconds");
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println(ANSI_YELLOW + "ERROR. Rolling back changes." + ANSI_RESET);
