@@ -34,7 +34,7 @@ public class DatabaseTools {
         try {
             Class.forName(driverName).newInstance();
             Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
-            connection.setAutoCommit(false);
+            connection.setAutoCommit(true);
 
             try {
                 long updateStart = System.currentTimeMillis();
@@ -45,32 +45,21 @@ public class DatabaseTools {
 
                 PreparedStatement update = connection.prepareStatement("update words set " + year + " = ?1 WHERE id= ?2");
 
-                int searched = 0;
-                int found = 0;
+                int foundCount = 0;
                 for (Translation translation: translations) {
-                    searched++;
-
-                    //TODO: REPLACE PRIMARY KEY WITH (word,language)
-                    //then: https://coderanch.com/t/538298/databases/Checking-record-exists
-                    //or: http://stackoverflow.com/a/8818028
-                    //or: http://stackoverflow.com/a/20817124
-                    //or maybe: SELECT count(*) FROM foos WHERE bar = 'bar'
-
-
                     int w_id = translation.id;
                     String word = translation.citylabel;
 //                    String language = translation.language;
                     String locatedIn = translation.locatedIn;
 
-
                     if (wordFreq.containsKey(word)) {
-                        found++;
+                        foundCount++;
                         query.setString(1, word);
                         ResultSet rs = query.executeQuery();
                         if (rs.next()) {
                             update.setInt(1, wordFreq.get(word));
                             update.setInt(2, rs.getInt(1));
-                            update.addBatch();
+                            update.executeUpdate();
                         } else {
                             id++;
                             insert.setInt(1, id);
@@ -79,19 +68,12 @@ public class DatabaseTools {
                             insert.setString(4, language);
                             insert.setString(5, locatedIn);
                             insert.setInt(6, wordFreq.get(word));
-                            insert.addBatch();
+                            insert.executeUpdate();
                         }
                     }
-                    insert.executeBatch();
-                    update.executeBatch();
-                    connection.commit();
                 }
 
-                System.out.println(found + " translations queried, compared, and written to DB in \t " + (float)(System.currentTimeMillis()-updateStart)/1000 + " seconds");
-//                insert.executeBatch();
-//                update.executeBatch();
-//                connection.commit();
-//                System.out.println(searched + " word frequencies written in \t" + (float)(System.currentTimeMillis()-commitStart)/1000 + " seconds");
+                System.out.println(foundCount + " translations queried, compared, and written to DB in \t " + (float)(System.currentTimeMillis()-updateStart)/1000 + " seconds");
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println(ANSI_YELLOW + "ERROR. Rolling back changes." + ANSI_RESET);

@@ -50,15 +50,6 @@ public class Main {
          */
         allFreqPaths = FileTools.deleteSmaller(allFreqPaths);
 
-//        System.out.println("\nContinue to: Parsing and Importing?");
-//
-//        Scanner scanner = new Scanner(System.in);
-//        String userInput = scanner.next();
-//        if(userInput.equalsIgnoreCase("y") || userInput.equalsIgnoreCase("yes")) {
-//        } else{
-//            System.exit(0);
-//        }
-
         //Iterate through all files, get all word frequencies, and pass them on to the database filler
         int currentCorpora = 0;
         for (String path: allFreqPaths) {
@@ -87,18 +78,14 @@ public class Main {
 
                 DatabaseTools.fillDatabase(translations, wordFreq, year, language);
             } else {
-//                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFilePaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
+//                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
             }
-
-//            DatabaseTools.writeAllWordFrequencies(wordFreq, year, language);
-//            DatabaseTools.updateWordFrequencies(wordFreq, year, language);
         }
 
         System.out.println(ANSI_CYAN + "End time: " + new Date() + ANSI_RESET);
         System.out.println(ANSI_CYAN + "Duration: " + (float)(System.currentTimeMillis() - startTime)/1000 + " seconds" + ANSI_RESET);
 
         DatabaseTools.printCount();
-//        DatabaseTools.TESTprintDB(5);
     }
 
     /**

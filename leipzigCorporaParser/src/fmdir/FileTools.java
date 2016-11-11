@@ -25,7 +25,9 @@ public class FileTools {
      * @param allTranslationPaths
      */
     public static HashMap<String, ArrayList<Translation>> importCSVbyLang(ArrayList<String> allTranslationPaths) {
-        HashMap<String, ArrayList<Translation>> translations = new HashMap<>();
+        long importStartTime = System.currentTimeMillis();
+
+        HashMap<String, ArrayList<Translation>> translationMap = new HashMap<>();
 
         BufferedReader br = null;
 
@@ -56,14 +58,14 @@ public class FileTools {
                     String locatedIn = parseCSVStuff(segments[2]);
 
                     //TODO: make below code readable
-                    ArrayList<Translation> translation = new ArrayList<>();
-                    if (!translations.containsKey(lang)){
-                        translations.put(lang, translation);
+                    ArrayList<Translation> translations = new ArrayList<>();
+                    if (!translationMap.containsKey(lang)){
+                        translationMap.put(lang, translations);
                     } else {
-                        translation = translations.get(lang);
+                        translations = translationMap.get(lang);
                     }
-                    translation.add(new Translation(id, citylabel, locatedIn, lang));
-                    translations.put(lang, translation);
+                    translations.add(new Translation(id, citylabel, locatedIn, lang));
+                    translationMap.put(lang, translations);
 
                     found++;
                 }
@@ -81,9 +83,9 @@ public class FileTools {
             }
         }
 
-        System.out.println(found + " translations imported from " + allTranslationPaths.size() + " files");
+        System.out.println(found + " translations imported from " + allTranslationPaths.size() + " files in \t\t" + (float)(System.currentTimeMillis()-importStartTime)/1000 + " seconds");
 
-        return translations;
+        return translationMap;
     }
 
     private static String parseCSVStuff(String lang) {
