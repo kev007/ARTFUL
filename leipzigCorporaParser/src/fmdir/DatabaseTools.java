@@ -40,6 +40,10 @@ public class DatabaseTools {
                 long updateStart = System.currentTimeMillis();
                 PreparedStatement insert = connection.prepareStatement("insert into words (id, w_id, word, language, located_in," + year + ") values (?1, ?2, ?3, ?4, ?5, ?6);");
 
+                PreparedStatement query = connection.prepareStatement("SELECT id FROM words WHERE word = ?1 and language='" + language + "';");
+
+                PreparedStatement update = connection.prepareStatement("update words set " + year + " = ?1 WHERE id= ?2");
+
                 int searched = 0;
                 int found = 0;
                 for (Translation translation: translations) {
@@ -52,26 +56,28 @@ public class DatabaseTools {
                     //or maybe: SELECT count(*) FROM foos WHERE bar = 'bar'
 
 
-
-                    id++;
                     int w_id = translation.id;
                     String word = translation.citylabel;
 //                    String language = translation.language;
                     String locatedIn = translation.locatedIn;
 
 
-
-                    insert.setInt(1, id);
-                    insert.setInt(2, w_id);
-                    insert.setString(3, word);
-                    insert.setString(4, language);
-                    insert.setString(5, locatedIn);
-
                     if (wordFreq.containsKey(word)) {
                         found++;
-                        insert.setInt(6, wordFreq.get(word));
+                        query.setString(1, word);
+                        ResultSet rs = query.executeQuery();
+                        if (rs.next()) {
+                            update.setInt(1, wordFreq.get(word));
+                            update.setInt(2, rs.getInt(1));
+                            update.addBatch();
+                        } else {
+                            insert.setInt(2, w_id);
+                            insert.setString(3, word);
+                            insert.setString(4, language);
+                            insert.setString(5, locatedIn);
+                            insert.setInt(6, wordFreq.get(word));
+                        }
                     }
-
                     insert.addBatch();
                 }
 
@@ -79,6 +85,7 @@ public class DatabaseTools {
                 System.out.println(found + " matches found");
                 System.out.println(searched + " words queried and compared in\t" + (float)(commitStart-updateStart)/1000 + " seconds");
                 insert.executeBatch();
+                update.executeBatch();
                 connection.commit();
                 System.out.println(searched + " word frequencies written in \t" + (float)(System.currentTimeMillis()-commitStart)/1000 + " seconds");
             } catch (Exception e) {
