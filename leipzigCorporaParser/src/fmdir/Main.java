@@ -37,17 +37,18 @@ public class Main {
         DatabaseTools.deleteAllRows("words");
 
         //Import translations CSV
-        HashMap<String, ArrayList<Translation>> allTranslations = FileTools.importCSVbyLang(prop.getProperty("translationPath"));
+        ArrayList<String> allTranslationPaths = FileTools.getAllPathsFrom(prop.getProperty("translationPath"));
+        HashMap<String, ArrayList<Translation>> allTranslations = FileTools.importCSVbyLang(allTranslationPaths);
 
         //Get all file paths for the .txt files
-        ArrayList<String> allFilePaths = FileTools.getAllPathsFrom(prop.getProperty("corpusPath"));
+        ArrayList<String> allFreqPaths = FileTools.getAllPathsFrom(prop.getProperty("corpusPath"));
 
         /**
          * TEST FUNCTION
          *
          * Deletes SMALLER CORPORA WITH THE SAME YEAR AND LANGUAGE
          */
-        allFilePaths = FileTools.deleteSmaller(allFilePaths);
+        allFreqPaths = FileTools.deleteSmaller(allFreqPaths);
 
 //        System.out.println("\nContinue to: Parsing and Importing?");
 //
@@ -60,11 +61,10 @@ public class Main {
 
         //Iterate through all files, get all word frequencies, and pass them on to the database filler
         int currentCorpora = 0;
-        for (String path: allFilePaths) {
+        for (String path: allFreqPaths) {
             currentCorpora++;
-            HashMap<String, Integer> wordFreq = FileTools.importWordFrequencies(path);
+            long parseStart = System.currentTimeMillis();
 
-            //get the file name from the file path (last segment)
             String[] segments = path.split("\\\\");
             String fileName = segments[segments.length-1];
 
@@ -74,19 +74,20 @@ public class Main {
             String tempLang = "";
             if (language.contains("eng")) {
                 tempLang = "en";
-            }
-            if (language.contains("deu")) {
+            } else if (language.contains("deu")) {
                 tempLang = "de";
             }
 
             if(allTranslations.containsKey(tempLang)) {
+                HashMap<String, Integer> wordFreq = FileTools.importWordFrequencies(path);
+
                 ArrayList<Translation> translations = allTranslations.get(tempLang);
 
-                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFilePaths.size() + ") - " +  year + " " + language + ": " + wordFreq.size() + " words, " + translations.size() + " translations" + ANSI_RESET);
+                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + language + ": " + wordFreq.size() + " words imported in \t\t " + (float)(System.currentTimeMillis()-parseStart)/1000 + " seconds" + ANSI_RESET);
 
                 DatabaseTools.fillDatabase(translations, wordFreq, year, language);
             } else {
-//                System.out.println(ANSI_YELLOW + "Language missing or mismatch: " + language + ANSI_RESET);
+//                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFilePaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
             }
 
 //            DatabaseTools.writeAllWordFrequencies(wordFreq, year, language);
@@ -137,7 +138,7 @@ public class Main {
         }
         if(prop.getProperty("translationPath").isEmpty()) {
 
-            defaultPath = System.getProperty("user.dir") + "/resources/translations/cities.csv";
+            defaultPath = System.getProperty("user.dir") + "/resources/translations";
 
             System.out.println("translationPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("translationPath", defaultPath);

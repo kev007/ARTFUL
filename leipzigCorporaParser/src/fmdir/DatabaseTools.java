@@ -38,6 +38,7 @@ public class DatabaseTools {
 
             try {
                 long updateStart = System.currentTimeMillis();
+
                 PreparedStatement insert = connection.prepareStatement("insert into words (id, w_id, word, language, located_in," + year + ") values (?1, ?2, ?3, ?4, ?5, ?6);");
 
                 PreparedStatement query = connection.prepareStatement("SELECT id FROM words WHERE word = ?1 and language='" + language + "';");
@@ -86,9 +87,7 @@ public class DatabaseTools {
                     connection.commit();
                 }
 
-                long commitStart = System.currentTimeMillis();
-                System.out.println(found + " matches found");
-                System.out.println(searched + " words queried, compared, and written to DB in\t" + (float)(commitStart-updateStart)/1000 + " seconds");
+                System.out.println(found + " translations queried, compared, and written to DB in \t " + (float)(System.currentTimeMillis()-updateStart)/1000 + " seconds");
 //                insert.executeBatch();
 //                update.executeBatch();
 //                connection.commit();
@@ -253,7 +252,7 @@ public class DatabaseTools {
             Class.forName(driverName).newInstance();
             Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
             ResultSet rs = connection.createStatement().executeQuery("SELECT COUNT(*) FROM words;");
-            System.out.println(ANSI_CYAN + "DatabaseTools records: " + NumberFormat.getNumberInstance(Locale.US).format(rs.getInt(1)) + " rows" + ANSI_RESET);
+            System.out.println(ANSI_CYAN + "Database records: " + NumberFormat.getNumberInstance(Locale.US).format(rs.getInt(1)) + " rows" + ANSI_RESET);
             connection.close();
         } catch (Exception e) {
             e.printStackTrace();

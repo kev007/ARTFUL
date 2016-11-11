@@ -22,64 +22,66 @@ public class FileTools {
 
     /**
      * TODO: Write description
-     * @param path
+     * @param allTranslationPaths
      */
-    public static HashMap<String, ArrayList<Translation>> importCSVbyLang(String path) {
+    public static HashMap<String, ArrayList<Translation>> importCSVbyLang(ArrayList<String> allTranslationPaths) {
         HashMap<String, ArrayList<Translation>> translations = new HashMap<>();
 
         BufferedReader br = null;
 
         int found = 0;
 
-        try {
-            br = new BufferedReader(new FileReader(path));
-            String currentLine;
-            //Skip line
-            br.readLine();
-            while ((currentLine = br.readLine()) != null) {
-                String[] segments = currentLine.split(",");
-                String lang = "";
-
-                //comma in translation workaround
-                if (segments.length > 4) {
-                    segments[1] = segments[1] + segments[2];
-                    segments[2] = segments[3];
-                    lang = segments[4];
-                } else {
-                    lang = segments[3];
-                }
-                //TODO: proper language thingamajig
-                lang = parseCSVStuff(lang);
-                int id = Integer.parseInt(segments[0]);
-                String citylabel = parseCSVStuff(segments[1]);
-                String locatedIn = parseCSVStuff(segments[2]);
-
-                //TODO: make below code readable
-                ArrayList<Translation> translation = new ArrayList<>();
-                if (!translations.containsKey(lang)){
-                    translations.put(lang, translation);
-                } else {
-                    translation = translations.get(lang);
-                }
-                translation.add(new Translation(id, citylabel, locatedIn, lang));
-                translations.put(lang, translation);
-
-                found++;
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
+        for (String path: allTranslationPaths) {
             try {
-                if (br != null) {
-                    br.close();
+                br = new BufferedReader(new FileReader(path));
+                String currentLine;
+                //Skip line
+                br.readLine();
+                while ((currentLine = br.readLine()) != null) {
+                    String[] segments = currentLine.split(",");
+                    String lang = "";
+
+                    //comma in translation workaround
+                    if (segments.length > 4) {
+                        segments[1] = segments[1] + segments[2];
+                        segments[2] = segments[3];
+                        lang = segments[4];
+                    } else {
+                        lang = segments[3];
+                    }
+                    //TODO: proper language thingamajig
+                    lang = parseCSVStuff(lang);
+                    int id = Integer.parseInt(segments[0]);
+                    String citylabel = parseCSVStuff(segments[1]);
+                    String locatedIn = parseCSVStuff(segments[2]);
+
+                    //TODO: make below code readable
+                    ArrayList<Translation> translation = new ArrayList<>();
+                    if (!translations.containsKey(lang)){
+                        translations.put(lang, translation);
+                    } else {
+                        translation = translations.get(lang);
+                    }
+                    translation.add(new Translation(id, citylabel, locatedIn, lang));
+                    translations.put(lang, translation);
+
+                    found++;
                 }
+
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    if (br != null) {
+                        br.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
-        System.out.println(found + " translations imported");
+        System.out.println(found + " translations imported from " + allTranslationPaths.size() + " files");
 
         return translations;
     }
@@ -105,20 +107,23 @@ public class FileTools {
             br = new BufferedReader(new FileReader(path));
             String currentLine;
             while ((currentLine = br.readLine()) != null) {
-
-                String[] segments = currentLine.split("\t");
-
-                wordFreq.put(segments[segments.length-2], Integer.parseInt(segments[segments.length-1]));
+                try {
+                    String[] segments = currentLine.split("\t");
+                    wordFreq.put(segments[segments.length-2], Integer.parseInt(segments[segments.length-1]));
+                }  catch (Exception e) {
+                    System.out.println(ANSI_YELLOW + "ERROR in document: " + path + " - '" + currentLine + "'" + ANSI_RESET);
+                }
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+//            e.printStackTrace();
+            System.out.println(ANSI_YELLOW + "ERROR in document: " + path + ANSI_RESET);
         } finally {
             try {
                 if (br != null) {
                     br.close();
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -210,30 +215,34 @@ public class FileTools {
             String fileName = segments[segments.length-1];
 
             segments = fileName.split("_");
-            String leftPath = fileName.split(segments[3])[0];
-            String rightPath = segments[3];
-
-            int sizeRankNew = getCorporaSize(fileName);
-
-            if (sizeRankNew == 0) {
-                System.out.println(ANSI_WHITE + "bad file syntax: " + fileName + ANSI_RESET);
-            } else if (sizeRankNew < 0) {
-                //compressed file. do nothing. for now.
-            } else if (largestRightPath.containsKey(leftPath)) {
-                int sizeRankOld = getCorporaSize(largestRightPath.get(leftPath));
-
-                if (sizeRankNew > sizeRankOld) {
-                    oldFilePaths.add(folder + leftPath + largestRightPath.get(leftPath));
-
-                    largestRightPath.put(leftPath, rightPath);
-                    System.out.println(sizeRankNew + " " + sizeRankOld);
-                } else if (sizeRankNew > sizeRankOld) {
-                    System.out.println("duplicate found: " + fileName + " == " + leftPath + largestRightPath.get(leftPath));
-                } else {
-                    oldFilePaths.add(path);
-                }
+            if (segments.length < 4) {
+                System.out.println(ANSI_YELLOW + segments.length + " - SIZE ERROR " + fileName + ANSI_RESET);
             } else {
-                largestRightPath.put(leftPath, rightPath);
+                String leftPath = fileName.split(segments[3])[0];
+                String rightPath = segments[3];
+
+                int sizeRankNew = getCorporaSize(fileName);
+
+                if (sizeRankNew == 0) {
+                    System.out.println(ANSI_WHITE + "bad file syntax: " + fileName + ANSI_RESET);
+                } else if (sizeRankNew < 0) {
+                    //compressed file. do nothing. for now.
+                } else if (largestRightPath.containsKey(leftPath)) {
+                    int sizeRankOld = getCorporaSize(largestRightPath.get(leftPath));
+
+                    if (sizeRankNew > sizeRankOld) {
+                        oldFilePaths.add(folder + leftPath + largestRightPath.get(leftPath));
+
+                        largestRightPath.put(leftPath, rightPath);
+                        System.out.println(sizeRankNew + " " + sizeRankOld);
+                    } else if (sizeRankNew > sizeRankOld) {
+                        System.out.println("duplicate found: " + fileName + " == " + leftPath + largestRightPath.get(leftPath));
+                    } else {
+                        oldFilePaths.add(path);
+                    }
+                } else {
+                    largestRightPath.put(leftPath, rightPath);
+                }
             }
         }
 
