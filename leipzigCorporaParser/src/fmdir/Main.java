@@ -34,7 +34,8 @@ public class Main {
          *
          * DELETES ALL ROWS
          */
-        DatabaseTools.deleteAllRows("words");
+        DatabaseTools.deleteAllRows("word");
+        DatabaseTools.deleteAllRows("translation");
 
         //Import translations CSV
         ArrayList<String> allTranslationPaths = FileTools.getAllPathsFrom(prop.getProperty("translationPath"));

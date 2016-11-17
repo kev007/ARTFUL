@@ -11,7 +11,8 @@ import java.util.Date;
  */
 public class DatabaseTools {
     public static final String driverName= "org.sqlite.JDBC";
-    public static int id = 0;
+    public static int wordID = 0;
+    public static int translationID = 0;
 
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_BLACK = "\u001B[30m";
@@ -39,11 +40,14 @@ public class DatabaseTools {
             try {
                 long updateStart = System.currentTimeMillis();
 
-                PreparedStatement insert = connection.prepareStatement("insert into words (id, w_id, word, language, located_in," + year + ") values (?1, ?2, ?3, ?4, ?5, ?6);");
+                PreparedStatement insertWord = connection.prepareStatement("" +
+                        "insert into word (id, word_id, language, located_in, freq, year) values (?1, ?2, ?3, ?4, ?5, ?6);");
+                PreparedStatement insertTranslation = connection.prepareStatement("" +
+                        "insert into translation (id, w_id, word, language, located_in) values (?1, ?2, ?3, ?4, ?5);");
 
-                PreparedStatement query = connection.prepareStatement("SELECT id FROM words WHERE word = ?1 and language='" + language + "';");
+                PreparedStatement getTranslation = connection.prepareStatement("SELECT id FROM translation WHERE word = ?1 and language = ?2");
 
-                PreparedStatement update = connection.prepareStatement("update words set " + year + " = ?1 WHERE id= ?2");
+                //PreparedStatement update = connection.prepareStatement("update word set " + year + " = ?1 WHERE id= ?2");
 
                 int foundCount = 0;
                 for (Translation translation: translations) {
@@ -51,25 +55,35 @@ public class DatabaseTools {
                     String word = translation.citylabel;
 //                    String language = translation.language;
                     String locatedIn = translation.locatedIn;
+                    int currentTranslation;
 
                     if (wordFreq.containsKey(word)) {
                         foundCount++;
-                        query.setString(1, word);
-                        ResultSet rs = query.executeQuery();
+                        getTranslation.setString(1, word);
+                        getTranslation.setString(2, language);
+                        ResultSet rs = getTranslation.executeQuery();
                         if (rs.next()) {
-                            update.setInt(1, wordFreq.get(word));
-                            update.setInt(2, rs.getInt(1));
-                            update.executeUpdate();
+                            //get existing translation primary key
+                            currentTranslation = rs.getInt(1);
                         } else {
-                            id++;
-                            insert.setInt(1, id);
-                            insert.setInt(2, w_id);
-                            insert.setString(3, word);
-                            insert.setString(4, language);
-                            insert.setString(5, locatedIn);
-                            insert.setInt(6, wordFreq.get(word));
-                            insert.executeUpdate();
+                            //create new translation
+                            translationID++;
+                            currentTranslation = translationID;
+                            insertTranslation.setInt(1, translationID);
+                            insertTranslation.setInt(2, w_id);
+                            insertTranslation.setString(3, word);
+                            insertTranslation.setString(4, language);
+                            insertTranslation.setString(5, locatedIn);
+                            insertTranslation.execute();
                         }
+                        wordID++;
+                        insertWord.setInt(1, wordID);
+                        insertWord.setInt(2, currentTranslation);
+//                        insertWord.setString(3, language);
+//                        insertWord.setString(4, locatedIn);
+                        insertWord.setInt(5, wordFreq.get(word));
+                        insertWord.setInt(6, Integer.parseInt(year));
+                        insertWord.execute();
                     }
                 }
 
@@ -109,8 +123,8 @@ public class DatabaseTools {
                     int freq = (int) pair.getValue();
 
                     found++;
-                    id++;
-                    insert.setInt(1, id);
+                    translationID++;
+                    insert.setInt(1, translationID);
                     insert.setInt(2, 0);
                     insert.setString(3, word);
                     insert.setString(4, language);
@@ -233,8 +247,10 @@ public class DatabaseTools {
         try {
             Class.forName(driverName).newInstance();
             Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
-            ResultSet rs = connection.createStatement().executeQuery("SELECT COUNT(*) FROM words;");
-            System.out.println(ANSI_CYAN + "Database records: " + NumberFormat.getNumberInstance(Locale.US).format(rs.getInt(1)) + " rows" + ANSI_RESET);
+            ResultSet rs = connection.createStatement().executeQuery("SELECT COUNT(*) FROM translation;");
+            System.out.println(ANSI_CYAN + "Translations: " + NumberFormat.getNumberInstance(Locale.US).format(rs.getInt(1)) + " rows" + ANSI_RESET);
+            rs = connection.createStatement().executeQuery("SELECT COUNT(*) FROM word;");
+            System.out.println(ANSI_CYAN + "Frequencies: " + NumberFormat.getNumberInstance(Locale.US).format(rs.getInt(1)) + " rows" + ANSI_RESET);
             connection.close();
         } catch (Exception e) {
             e.printStackTrace();
