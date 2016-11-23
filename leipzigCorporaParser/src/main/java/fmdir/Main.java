@@ -117,26 +117,27 @@ public class Main {
          * Read property, replace with default if empty
          */
         String defaultPath = "";
-        if(prop.getProperty("corpusPath").isEmpty()) {
+        if(prop.getProperty("corpusPath") == null || prop.getProperty("corpusPath").isEmpty()) {
 
             defaultPath = System.getProperty("user.dir") + "/resources" + "/txt";
 
             System.out.println("corpusPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("corpusPath", defaultPath);
         }
-        if(prop.getProperty("translationPath").isEmpty()) {
+        if(prop.getProperty("translationPath") == null || prop.getProperty("translationPath").isEmpty()) {
 
             defaultPath = System.getProperty("user.dir") + "/resources/translations";
 
             System.out.println("translationPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("translationPath", defaultPath);
         }
-        if(prop.getProperty("dbPath").isEmpty()) {
+        if(prop.getProperty("dbPath") == null || prop.getProperty("dbPath").isEmpty()) {
 
             defaultPath = "C:/workspace/2016-FMdIR-Thema1/database/translations.sqlite";
 
             System.out.println("dbPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("dbPath", defaultPath);
         }
+
     }
 }

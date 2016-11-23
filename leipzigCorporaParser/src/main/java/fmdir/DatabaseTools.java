@@ -38,10 +38,10 @@ public class DatabaseTools {
             try {
                 long updateStart = System.currentTimeMillis();
 
-                PreparedStatement insertWord = connection.prepareStatement("" +
-                        "insert into word (id, word_id, language, located_in, freq, year) values (?1, ?2, ?3, ?4, ?5, ?6);");
                 PreparedStatement insertTranslation = connection.prepareStatement("" +
                         "insert into translation (id, w_id, word, language, located_in) values (?1, ?2, ?3, ?4, ?5);");
+                PreparedStatement insertWord = connection.prepareStatement("" +
+                        "insert into word (id, translation_id, freq, year) values (?1, ?2, ?3, ?4);");
 
                 PreparedStatement getTranslation = connection.prepareStatement("SELECT id FROM translation WHERE word = ?1 and language = ?2");
 
@@ -53,7 +53,7 @@ public class DatabaseTools {
                     String word = translation.citylabel;
 //                    String language = translation.language;
                     String locatedIn = translation.locatedIn;
-                    int currentTranslation;
+                    int currentTranslationID;
 
                     if (wordFreq.containsKey(word)) {
                         foundCount++;
@@ -62,11 +62,11 @@ public class DatabaseTools {
                         ResultSet rs = getTranslation.executeQuery();
                         if (rs.next()) {
                             //get existing translation primary key
-                            currentTranslation = rs.getInt(1);
+                            currentTranslationID = rs.getInt(1);
                         } else {
                             //create new translation
                             translationID++;
-                            currentTranslation = translationID;
+                            currentTranslationID = translationID;
                             insertTranslation.setInt(1, translationID);
                             insertTranslation.setInt(2, w_id);
                             insertTranslation.setString(3, word);
@@ -76,11 +76,9 @@ public class DatabaseTools {
                         }
                         wordID++;
                         insertWord.setInt(1, wordID);
-                        insertWord.setInt(2, currentTranslation);
-//                        insertWord.setString(3, language);
-//                        insertWord.setString(4, locatedIn);
-                        insertWord.setInt(5, wordFreq.get(word));
-                        insertWord.setInt(6, Integer.parseInt(year));
+                        insertWord.setInt(2, currentTranslationID);
+                        insertWord.setInt(3, wordFreq.get(word));
+                        insertWord.setInt(4, Integer.parseInt(year));
                         insertWord.execute();
                     }
                 }

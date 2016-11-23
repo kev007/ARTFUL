@@ -9,7 +9,7 @@ public class Word {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private Integer word_id;
+    private Integer translation_id;
     private Integer freq;
     private Integer year;
 
@@ -21,12 +21,12 @@ public class Word {
         this.id = id;
     }
 
-    public Integer getWord_id() {
-        return word_id;
+    public Integer getTranslation_id() {
+        return translation_id;
     }
 
-    public void setWord_id(Integer word_id) {
-        this.word_id = word_id;
+    public void setTranslation_id(Integer translation_id) {
+        this.translation_id = translation_id;
     }
 
     public Integer getFreq() {
@@ -49,7 +49,7 @@ public class Word {
     public String toString() {
         return "Word{" +
                 "id=" + id +
-                ", word_id=" + word_id +
+                ", translation_id=" + translation_id +
                 ", freq=" + freq +
                 ", year=" + year +
                 '}';

@@ -40,22 +40,22 @@ public class FileTools {
                 //Skip line
                 br.readLine();
                 while ((currentLine = br.readLine()) != null) {
-                    String[] segments = currentLine.split(",");
+                    String[] segments = currentLine.split("\t");
                     String lang = "";
 
-                    //comma in translation workaround
-                    if (segments.length > 4) {
-                        segments[1] = segments[1] + segments[2];
-                        segments[2] = segments[3];
-                        lang = segments[4];
-                    } else {
-                        lang = segments[3];
-                    }
-                    //TODO: proper language thingamajig
-                    lang = parseCSVStuff(lang);
                     int id = Integer.parseInt(segments[0]);
                     String citylabel = parseCSVStuff(segments[1]);
                     String locatedIn = parseCSVStuff(segments[2]);
+                    //comma in translation workaround
+//                    if (segments.length > 4) {
+//                        segments[1] = segments[1] + segments[2];
+//                        segments[2] = segments[3];
+//                        lang = segments[4];
+//                    } else {
+                        lang = segments[3];
+//                    }
+                    //TODO: proper language thingamajig
+//                    lang = parseCSVStuff(lang);
 
                     //TODO: make below code readable
                     ArrayList<Translation> translations = new ArrayList<>();
