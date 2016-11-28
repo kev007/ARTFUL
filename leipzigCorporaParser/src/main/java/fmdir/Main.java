@@ -24,6 +24,7 @@ public class Main {
 
 
     public static void main(String[] args) {
+    	fillLanguageKeys();
         long startTime = System.currentTimeMillis();
         System.out.println(ANSI_CYAN + "Start time: " + new Date() + ANSI_RESET);
         readConfig();
@@ -34,8 +35,8 @@ public class Main {
          *
          * DELETES ALL ROWS
          */
-        DatabaseTools.deleteAllRows("word");
-        DatabaseTools.deleteAllRows("translation");
+//        DatabaseTools.deleteAllRows("word");
+//        DatabaseTools.deleteAllRows("translation");
 
         //Import translations CSV
         ArrayList<String> allTranslationPaths = FileTools.getAllPathsFrom(prop.getProperty("translationPath"));
@@ -49,7 +50,7 @@ public class Main {
          *
          * Deletes SMALLER CORPORA WITH THE SAME YEAR AND LANGUAGE
          */
-        allFreqPaths = FileTools.deleteSmaller(allFreqPaths);
+//        allFreqPaths = FileTools.deleteSmaller(allFreqPaths);
 
         //Iterate through all files, get all word frequencies, and pass them on to the database filler
         int currentCorpora = 0;
@@ -63,11 +64,9 @@ public class Main {
             String year = FileTools.parseYear(fileName);
             String language = FileTools.parseLanguage(fileName);
 
-            String tempLang = "";
-            if (language.contains("eng")) {
-                tempLang = "en";
-            } else if (language.contains("deu")) {
-                tempLang = "de";
+            String tempLang = DatabaseTools.languageKeys.get(language.substring(0, language.lastIndexOf("-")));
+            if(tempLang == null){
+            	tempLang = "en";
             }
 
             if(allTranslations.containsKey(tempLang)) {
@@ -96,7 +95,7 @@ public class Main {
         InputStream input = null;
 
         try {
-            input = new FileInputStream("config.properties");
+            input = new FileInputStream("leipzigCorporaParser/config.properties");
 
             // load a properties file
             prop.load(input);
@@ -139,5 +138,21 @@ public class Main {
             prop.setProperty("dbPath", defaultPath);
         }
 
+    }
+    
+    static void fillLanguageKeys(){
+    	DatabaseTools.languageKeys = new HashMap<String, String>();
+   DatabaseTools.languageKeys.put("ara", "ar");
+   DatabaseTools.languageKeys.put("deu", "de");
+   DatabaseTools.languageKeys.put("eng", "en");
+   DatabaseTools.languageKeys.put("spa", "es");
+   DatabaseTools.languageKeys.put("fra", "fr");
+   DatabaseTools.languageKeys.put("ita", "it");
+   DatabaseTools.languageKeys.put("jpn", "ja");
+   DatabaseTools.languageKeys.put("nld", "nl");
+   DatabaseTools.languageKeys.put("pol", "pl");
+   DatabaseTools.languageKeys.put("por", "pt");
+   DatabaseTools.languageKeys.put("rus", "ru");
+   DatabaseTools.languageKeys.put("zho", "zh");
     }
 }
