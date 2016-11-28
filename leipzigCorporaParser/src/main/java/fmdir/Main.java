@@ -36,7 +36,7 @@ public class Main {
          *
          * DELETES ALL ROWS
          */
-        DatabaseTools.deleteAllRows("word");
+        DatabaseTools.deleteAllRows("freq");
         DatabaseTools.deleteAllRows("translation");
 
         //Import translations CSV

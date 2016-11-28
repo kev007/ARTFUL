@@ -42,7 +42,7 @@ public class DatabaseTools {
                 PreparedStatement insertTranslation = connection.prepareStatement("" +
                         "insert into translation (id, w_id, word, language, located_in) values (?1, ?2, ?3, ?4, ?5);");
                 PreparedStatement insertWord = connection.prepareStatement("" +
-                        "insert into word (id, translation_id, freq, year) values (?1, ?2, ?3, ?4);");
+                        "insert into freq (id, translation_id, corpus, freq, year) values (?1, ?2, ?3, ?4, ?5);");
 
                 PreparedStatement getTranslation = connection.prepareStatement("SELECT id FROM translation WHERE word = ?1 and language = ?2");
 
@@ -78,8 +78,9 @@ public class DatabaseTools {
                         wordID++;
                         insertWord.setInt(1, wordID);
                         insertWord.setInt(2, currentTranslationID);
-                        insertWord.setInt(3, wordFreq.get(word));
-                        insertWord.setInt(4, Integer.parseInt(year));
+                        insertWord.setString(3, language);
+                        insertWord.setInt(4, wordFreq.get(word));
+                        insertWord.setInt(5, Integer.parseInt(year));
                         insertWord.execute();
                     }
                 }
@@ -110,7 +111,7 @@ public class DatabaseTools {
             connection.setAutoCommit(false);
 
             try {
-                PreparedStatement insert = connection.prepareStatement("insert into words (id, w_id, word, language, located_in," + year + ") values (?1, ?2, ?3, ?4, ?5, ?6);");
+                PreparedStatement insert = connection.prepareStatement("insert into freq (id, w_id, word, language, located_in," + year + ") values (?1, ?2, ?3, ?4, ?5, ?6);");
 
                 int found = 0;
                 for (Object kvPair : wordFreq.entrySet()) {
@@ -156,8 +157,8 @@ public class DatabaseTools {
                 long updateStart = System.currentTimeMillis();
 
                 Statement s = connection.createStatement();
-                ResultSet rs = s.executeQuery("SELECT word, language, " + year + " FROM words WHERE language='" + language + "';");
-                PreparedStatement update = connection.prepareStatement("update words set " + year + " = ?1 WHERE word = ?2 and language = ?3");
+                ResultSet rs = s.executeQuery("SELECT freq, language, " + year + " FROM freq WHERE language='" + language + "';");
+                PreparedStatement update = connection.prepareStatement("update freq set " + year + " = ?1 WHERE word = ?2 and language = ?3");
 
                 int searched = 0;
                 int found = 0;
@@ -203,7 +204,7 @@ public class DatabaseTools {
             Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
 
             Statement s = connection.createStatement();
-            ResultSet rs = s.executeQuery("SELECT * FROM words;");
+            ResultSet rs = s.executeQuery("SELECT * FROM freq;");
             int columnCount = rs.getMetaData().getColumnCount();
 
             int temp = 0;
@@ -246,7 +247,7 @@ public class DatabaseTools {
             Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
             ResultSet rs = connection.createStatement().executeQuery("SELECT COUNT(*) FROM translation;");
             System.out.println(ANSI_CYAN + "Translations: " + NumberFormat.getNumberInstance(Locale.US).format(rs.getInt(1)) + " rows" + ANSI_RESET);
-            rs = connection.createStatement().executeQuery("SELECT COUNT(*) FROM word;");
+            rs = connection.createStatement().executeQuery("SELECT COUNT(*) FROM freq;");
             System.out.println(ANSI_CYAN + "Frequencies: " + NumberFormat.getNumberInstance(Locale.US).format(rs.getInt(1)) + " rows" + ANSI_RESET);
             connection.close();
         } catch (Exception e) {
