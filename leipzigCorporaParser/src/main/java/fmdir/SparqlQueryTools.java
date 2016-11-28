@@ -37,7 +37,7 @@ public class SparqlQueryTools {
     public static final String GET_ALL_CITIES_SETTLEMENT_3 = "WHERE { ?city rdf:type dbo:Settlement ; rdfs:label ?citylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}ORDER BY ?city LIMIT 10000 OFFSET 20000"; 
     public static final String GET_ALL_CITIES_CITY = "WHERE { ?city rdf:type dbo:City ; rdfs:label ?citylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}"; 
     public static final String GET_ALL_CITIES_TOWN = "WHERE { ?city rdf:type dbo:Town ; rdfs:label ?citylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}"; 
-//    public static final String GET_ALL_CITIES_UMBEL = "WHERE { ?city rdf:type umbel:City ; rdfs:label ?citylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}"; 
+    public static final String GET_ALL_CITIES_UMBEL = "WHERE { ?city rdf:type umbel:City ; rdfs:label ?citylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}"; 
 //    												+ "WHERE { ?city rdf:type dbo:City .}"; 
     public static void main(String[] args){
     		
@@ -62,6 +62,10 @@ public class SparqlQueryTools {
 			finalRes.add(results.next());
 		}
 		results = querySelect(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_TOWN, DBPEDIA_ENDPOINT, null, null);
+		while(results.hasNext()){
+			finalRes.add(results.next());
+		}
+		results = querySelect(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_UMBEL, DBPEDIA_ENDPOINT, null, null);
 		while(results.hasNext()){
 			finalRes.add(results.next());
 		}
