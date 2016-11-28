@@ -66,9 +66,14 @@ public class Main {
             String year = FileTools.parseYear(fileName);
             String language = FileTools.parseLanguage(fileName);
 
-            String tempLang = DatabaseTools.languageKeys.get(language.substring(0, language.lastIndexOf("-")));
+            String tempLang = "";
+            try {
+                tempLang = DatabaseTools.languageKeys.get(language.substring(0, language.lastIndexOf("-")));
+            } catch (Exception e) {
+                tempLang = "en";
+            }
             if(tempLang == null){
-            	tempLang = "en";
+                tempLang = "en";
             }
 
             if(allTranslations.containsKey(tempLang)) {
@@ -120,14 +125,14 @@ public class Main {
         String defaultPath = "";
         if(prop.getProperty("corpusPath") == null || prop.getProperty("corpusPath").isEmpty()) {
 
-            defaultPath = "leipzigCorporaParser/resources/txt";
+            defaultPath = "leipzigCorporaParser/resources/txt/";
 
             System.out.println("corpusPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("corpusPath", defaultPath);
         }
         if(prop.getProperty("translationPath") == null || prop.getProperty("translationPath").isEmpty()) {
 
-            defaultPath = "leipzigCorporaParser/resources/translations";
+            defaultPath = "leipzigCorporaParser/resources/translations/";
 
             System.out.println("translationPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("translationPath", defaultPath);

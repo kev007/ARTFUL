@@ -237,7 +237,7 @@ public class FileTools {
                     int sizeRankOld = getCorporaSize(largestRightPath.get(leftPath));
 
                     if (sizeRankNew > sizeRankOld) {
-                        oldFilePaths.add(FileSystems.getDefault().getPath(folder + leftPath + largestRightPath.get(leftPath)));
+                        oldFilePaths.add(FileSystems.getDefault().getPath(folder + "/" + leftPath + largestRightPath.get(leftPath)));
 
                         largestRightPath.put(leftPath, rightPath);
                         System.out.println(sizeRankNew + " " + sizeRankOld);
@@ -255,7 +255,7 @@ public class FileTools {
         Iterator it = largestRightPath.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry)it.next();
-            newFilePaths.add(FileSystems.getDefault().getPath(folder + pair.getKey()+ "" + pair.getValue()));
+            newFilePaths.add(FileSystems.getDefault().getPath(folder + "/" + pair.getKey()+ "" + pair.getValue()));
         }
 
         if (oldFilePaths.size() > 0) {
