@@ -35,8 +35,8 @@ public class Main {
          *
          * DELETES ALL ROWS
          */
-//        DatabaseTools.deleteAllRows("word");
-//        DatabaseTools.deleteAllRows("translation");
+        DatabaseTools.deleteAllRows("word");
+        DatabaseTools.deleteAllRows("translation");
 
         //Import translations CSV
         ArrayList<String> allTranslationPaths = FileTools.getAllPathsFrom(prop.getProperty("translationPath"));
@@ -50,7 +50,7 @@ public class Main {
          *
          * Deletes SMALLER CORPORA WITH THE SAME YEAR AND LANGUAGE
          */
-//        allFreqPaths = FileTools.deleteSmaller(allFreqPaths);
+        allFreqPaths = FileTools.deleteSmaller(allFreqPaths);
 
         //Iterate through all files, get all word frequencies, and pass them on to the database filler
         int currentCorpora = 0;
@@ -118,21 +118,21 @@ public class Main {
         String defaultPath = "";
         if(prop.getProperty("corpusPath") == null || prop.getProperty("corpusPath").isEmpty()) {
 
-            defaultPath = System.getProperty("user.dir") + "/resources" + "/txt";
+            defaultPath = "leipzigCorporaParser/resources/txt";
 
             System.out.println("corpusPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("corpusPath", defaultPath);
         }
         if(prop.getProperty("translationPath") == null || prop.getProperty("translationPath").isEmpty()) {
 
-            defaultPath = System.getProperty("user.dir") + "/resources/translations";
+            defaultPath = "leipzigCorporaParser/resources/translations";
 
             System.out.println("translationPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("translationPath", defaultPath);
         }
         if(prop.getProperty("dbPath") == null || prop.getProperty("dbPath").isEmpty()) {
 
-            defaultPath = "C:/workspace/2016-FMdIR-Thema1/database/translations.sqlite";
+            defaultPath = "database/translations.sqlite";
 
             System.out.println("dbPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("dbPath", defaultPath);
@@ -141,18 +141,18 @@ public class Main {
     }
     
     static void fillLanguageKeys(){
-    	DatabaseTools.languageKeys = new HashMap<String, String>();
-   DatabaseTools.languageKeys.put("ara", "ar");
-   DatabaseTools.languageKeys.put("deu", "de");
-   DatabaseTools.languageKeys.put("eng", "en");
-   DatabaseTools.languageKeys.put("spa", "es");
-   DatabaseTools.languageKeys.put("fra", "fr");
-   DatabaseTools.languageKeys.put("ita", "it");
-   DatabaseTools.languageKeys.put("jpn", "ja");
-   DatabaseTools.languageKeys.put("nld", "nl");
-   DatabaseTools.languageKeys.put("pol", "pl");
-   DatabaseTools.languageKeys.put("por", "pt");
-   DatabaseTools.languageKeys.put("rus", "ru");
-   DatabaseTools.languageKeys.put("zho", "zh");
+        DatabaseTools.languageKeys = new HashMap<String, String>();
+        DatabaseTools.languageKeys.put("ara", "ar");
+        DatabaseTools.languageKeys.put("deu", "de");
+        DatabaseTools.languageKeys.put("eng", "en");
+        DatabaseTools.languageKeys.put("spa", "es");
+        DatabaseTools.languageKeys.put("fra", "fr");
+        DatabaseTools.languageKeys.put("ita", "it");
+        DatabaseTools.languageKeys.put("jpn", "ja");
+        DatabaseTools.languageKeys.put("nld", "nl");
+        DatabaseTools.languageKeys.put("pol", "pl");
+        DatabaseTools.languageKeys.put("por", "pt");
+        DatabaseTools.languageKeys.put("rus", "ru");
+        DatabaseTools.languageKeys.put("zho", "zh");
     }
 }
