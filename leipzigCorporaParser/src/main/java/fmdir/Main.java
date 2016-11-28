@@ -1,6 +1,7 @@
 package main.java.fmdir;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.Date;
 
@@ -39,11 +40,11 @@ public class Main {
         DatabaseTools.deleteAllRows("translation");
 
         //Import translations CSV
-        ArrayList<String> allTranslationPaths = FileTools.getAllPathsFrom(prop.getProperty("translationPath"));
+        ArrayList<Path> allTranslationPaths = FileTools.getAllPathsFrom(prop.getProperty("translationPath"));
         HashMap<String, ArrayList<Translation>> allTranslations = FileTools.importCSVbyLang(allTranslationPaths);
 
         //Get all file paths for the .txt files
-        ArrayList<String> allFreqPaths = FileTools.getAllPathsFrom(prop.getProperty("corpusPath"));
+        ArrayList<Path> allFreqPaths = FileTools.getAllPathsFrom(prop.getProperty("corpusPath"));
 
         /**
          * TEST FUNCTION
@@ -54,12 +55,13 @@ public class Main {
 
         //Iterate through all files, get all word frequencies, and pass them on to the database filler
         int currentCorpora = 0;
-        for (String path: allFreqPaths) {
+        for (Path path: allFreqPaths) {
             currentCorpora++;
             long parseStart = System.currentTimeMillis();
 
-            String[] segments = path.split("\\\\");
-            String fileName = segments[segments.length-1];
+//            String[] segments = path.split("\\\\");
+//            String fileName = segments[segments.length-1];
+            String fileName = path.getFileName().toString();
 
             String year = FileTools.parseYear(fileName);
             String language = FileTools.parseLanguage(fileName);

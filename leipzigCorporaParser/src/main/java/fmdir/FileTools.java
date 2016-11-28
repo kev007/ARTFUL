@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.*;
 
 
@@ -24,7 +26,7 @@ public class FileTools {
      * TODO: Write description
      * @param allTranslationPaths
      */
-    public static HashMap<String, ArrayList<Translation>> importCSVbyLang(ArrayList<String> allTranslationPaths) {
+    public static HashMap<String, ArrayList<Translation>> importCSVbyLang(ArrayList<Path> allTranslationPaths) {
         long importStartTime = System.currentTimeMillis();
 
         HashMap<String, ArrayList<Translation>> translationMap = new HashMap<>();
@@ -33,9 +35,9 @@ public class FileTools {
 
         int found = 0;
 
-        for (String path: allTranslationPaths) {
+        for (Path path: allTranslationPaths) {
             try {
-                br = new BufferedReader(new FileReader(path));
+                br = new BufferedReader(new FileReader(path.toString()));
                 String currentLine;
                 //Skip line
                 br.readLine();
@@ -100,13 +102,13 @@ public class FileTools {
      * @param path the path to the text file
      * @return the Key,Value word frequency map
      */
-    public static HashMap<String, Integer> importWordFrequencies(String path) {
+    public static HashMap<String, Integer> importWordFrequencies(Path path) {
         HashMap<String, Integer> wordFreq = new HashMap<>();
 
         BufferedReader br = null;
 
         try {
-            br = new BufferedReader(new FileReader(path));
+            br = new BufferedReader(new FileReader(path.toString()));
             String currentLine;
             while ((currentLine = br.readLine()) != null) {
                 try {
@@ -138,14 +140,14 @@ public class FileTools {
      * @param targetDir the target directory
      * @return the paths of all files in ArrayList form
      */
-    public static ArrayList<String> getAllPathsFrom(String targetDir) {
-        ArrayList<String> allPaths = new ArrayList<>();
+    public static ArrayList<Path> getAllPathsFrom(String targetDir) {
+        ArrayList<Path> allPaths = new ArrayList<>();
 
         File dir = new File(targetDir);
         File[] directoryListing = dir.listFiles();
         if (directoryListing != null) {
             for (File child : directoryListing) {
-                allPaths.add(child.getPath());
+                allPaths.add(FileSystems.getDefault().getPath(child.getPath()));
 //                System.out.println(child.getPath());
             }
         } else {
@@ -202,21 +204,23 @@ public class FileTools {
         return year;
     }
 
-    public static ArrayList<String> deleteSmaller(ArrayList<String> allFilePaths) {
+    public static ArrayList<Path> deleteSmaller(ArrayList<Path> allFilePaths) {
         HashMap<String, String> largestRightPath = new HashMap<>();
-        ArrayList<String> oldFilePaths = new ArrayList<>();
-        ArrayList<String> newFilePaths = new ArrayList<>();
+        ArrayList<Path> oldFilePaths = new ArrayList<>();
+        ArrayList<Path> newFilePaths = new ArrayList<>();
 
         String folder = "";
 
-        for (String path: allFilePaths) {
+        for (Path path: allFilePaths) {
 
             //get the file name from the file path (last segment)
-            String[] segments = path.split("\\\\");
-            folder = path.split(segments[segments.length-1])[0];
-            String fileName = segments[segments.length-1];
+//            String[] segments = path.split("\\\\");
+//            folder = path.split(segments[segments.length-1])[0];
+//            String fileName = segments[segments.length-1];
+            String fileName = path.getFileName().toString();
+            folder = path.getParent().toString();
 
-            segments = fileName.split("_");
+            String[] segments = fileName.split("_");
             if (segments.length < 4) {
                 System.out.println(ANSI_YELLOW + segments.length + " - SIZE ERROR " + fileName + ANSI_RESET);
             } else {
@@ -233,7 +237,7 @@ public class FileTools {
                     int sizeRankOld = getCorporaSize(largestRightPath.get(leftPath));
 
                     if (sizeRankNew > sizeRankOld) {
-                        oldFilePaths.add(folder + leftPath + largestRightPath.get(leftPath));
+                        oldFilePaths.add(FileSystems.getDefault().getPath(folder + leftPath + largestRightPath.get(leftPath)));
 
                         largestRightPath.put(leftPath, rightPath);
                         System.out.println(sizeRankNew + " " + sizeRankOld);
@@ -251,7 +255,7 @@ public class FileTools {
         Iterator it = largestRightPath.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry)it.next();
-            newFilePaths.add(folder + pair.getKey()+ "" + pair.getValue());
+            newFilePaths.add(FileSystems.getDefault().getPath(folder + pair.getKey()+ "" + pair.getValue()));
         }
 
         if (oldFilePaths.size() > 0) {
@@ -261,8 +265,8 @@ public class FileTools {
         return newFilePaths;
     }
 
-    private static void deleteFiles(ArrayList<String> allFilePaths) {
-        for (String path: allFilePaths) {
+    private static void deleteFiles(ArrayList<Path> allFilePaths) {
+        for (Path path: allFilePaths) {
             System.out.println("Found a larger Corpus, adding to delete list: " + ANSI_YELLOW + path + ANSI_RESET);
         }
         System.out.println(allFilePaths.size() + " items found");
@@ -279,8 +283,8 @@ public class FileTools {
         String userInput = scanner.next();
         if(userInput.equalsIgnoreCase("y") || userInput.equalsIgnoreCase("yes")) {
             System.out.println("This will be fun");
-            for (String path: allFilePaths) {
-                new File(path).delete();
+            for (Path path: allFilePaths) {
+                new File(path.toString()).delete();
             }
         } else {
             System.out.println("Maybe next time");
