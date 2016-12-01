@@ -3,8 +3,8 @@ package fmdir.entities;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "word")
-public class Word {
+@Table(name = "freq")
+public class Freq {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,7 +47,7 @@ public class Word {
 
     @Override
     public String toString() {
-        return "Word{" +
+        return "Freq{" +
                 "id=" + id +
                 ", translation_id=" + translation_id +
                 ", freq=" + freq +
