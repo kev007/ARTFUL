@@ -12,7 +12,7 @@ public class DBConfig {
 	public DataSource dataSource() {
 	        DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
 	        dataSourceBuilder.driverClassName("org.sqlite.JDBC");
-	        dataSourceBuilder.url("jdbc:sqlite:database/translations.sqlite");
+	        dataSourceBuilder.url("jdbc:sqlite:../database/translations.sqlite");
 	        return dataSourceBuilder.build();   
 	}
 }
