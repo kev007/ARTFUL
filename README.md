@@ -16,7 +16,11 @@ TODO: Describe the installation process
 
 ## Usage
 
-TODO: Write usage instructions
+Start the server with:
+```
+cd server
+mvn clean spring-boot:run
+```
 
 ## Credits
 
