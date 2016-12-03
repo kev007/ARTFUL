@@ -11,7 +11,11 @@ function initLeafletMap() {
 
     var popup = L.popup();
 
-    L.geoJson(countryData, {style: style}).addTo(map);
+    httpGetAsync('/freqs', function (response) {
+        var countryFreq = JSON.parse(response);
+        var mergedData = mergeCountryFreq(countryFreq['countries'], countryData);
+        L.geoJson(mergedData, {style: style}).addTo(map);
+    });
 
     function onMapClick(e) {
         popup
@@ -36,11 +40,42 @@ function getColor(d) {
 
 function style(feature) {
     return {
-        fillColor: getColor(feature.properties.density),
+        fillColor: getColor(feature.properties.frequency),
         weight: 2,
         opacity: 1,
         color: 'white',
         dashArray: '3',
         fillOpacity: 0.7
     };
+}
+
+function httpGetAsync(theUrl, callback) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function () {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    };
+    xmlHttp.open("GET", theUrl, true);
+    xmlHttp.send();
+}
+
+function mergeCountryFreq(countries, geoJSON) {
+    var mergedData = {
+        "type": "FeatureCollection",
+        "features": []
+    };
+    $.each(countries, function (index, country) {
+        if (country.name.search(new RegExp(country.name, "i")) != -1) {
+            var geometry = geoJSON.features.filter(function (features) {
+                return features.properties.name === country.name;
+            })[0].geometry;
+
+            mergedData.features.push({
+                "type": "Feature",
+                "properties": {"name": country.name, "frequency": country.frequency},
+                "geometry": geometry
+            });
+        }
+    });
+    return mergedData;
 }
