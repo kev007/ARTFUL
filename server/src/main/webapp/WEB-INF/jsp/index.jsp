@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="<c:url value="/resources/leaflet.css" />" rel="stylesheet">
+    <script src="<c:url value="/resources/data/country-data.js" />"></script>
     <script src="<c:url value="/resources/app.js" />"></script>
     <script src="<c:url value="/resources/leaflet.js" />"></script>
 </head>
