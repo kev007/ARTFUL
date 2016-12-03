@@ -19,8 +19,7 @@ public class FreqController {
     }
 
     @RequestMapping("/freqs")
-    public String getFreqs(@RequestParam(value = "exampleParam", defaultValue = "foo") String param) {
-        Iterable<Freq> freqs = repository.findAll();
-        return freqs.toString();
+    public Iterable<Freq> getFreqs(@RequestParam(value = "exampleParam", defaultValue = "foo") String param) {
+        return repository.findAll();
     }
 }
