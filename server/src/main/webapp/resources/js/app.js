@@ -134,7 +134,7 @@ $(function () {
         },
         change: function (event, ui) {
             map.removeLayer(geojson);
-            getFreqs(ui.values[0], ui.values[0], map);
+            getFreqs(ui.values[0], ui.values[1], map);
         }
     });
     $("#year").val($("#slider-range").slider("values", 0) +
