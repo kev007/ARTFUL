@@ -15,7 +15,7 @@
 
 <body>
     <b>${message}</b>
-    <div id="mapid" style="width: 600px; height: 400px;"></div>
+    <div id="mapid" style="width: 1200px; height: 800px;"></div>
     <script>initLeafletMap();</script>
 </body>
 
