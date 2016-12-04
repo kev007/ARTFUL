@@ -14,6 +14,9 @@ TODO: Write goals
 
 TODO: Describe the installation process
 
+## Datasource
+The GeoJSON Data to colorize the countries is from <https://geojson-maps.kyd.com.au/>.
+
 ## Usage
 
 Start the server with:
