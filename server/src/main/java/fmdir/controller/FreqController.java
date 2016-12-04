@@ -1,6 +1,7 @@
 package fmdir.controller;
 
 import fmdir.dao.FreqDao;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,11 +10,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 
 @RestController
 public class FreqController {
 
     private final FreqDao repository;
+
+    static Logger log = Logger.getLogger(FreqController.class.getName());
+
 
     @Autowired
     public FreqController(FreqDao repository) {
@@ -21,7 +27,11 @@ public class FreqController {
     }
 
     @RequestMapping(value = "/freqs", method = RequestMethod.GET)
-    public String getFreqs(@RequestParam(value = "exampleParam", defaultValue = "foo") String param) {
+    public String getFreqs(@RequestParam Map<String, String> requestParams) {
+
+        Integer start = Integer.valueOf(requestParams.get("start"));
+        Integer end = Integer.valueOf(requestParams.get("end"));
+
         //TODO get real frequency data from database
         JSONObject response = new JSONObject();
         JSONArray countries = new JSONArray();

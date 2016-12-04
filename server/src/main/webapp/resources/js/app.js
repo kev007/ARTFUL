@@ -1,7 +1,8 @@
 var geojson;
+var map;
 
 function initLeafletMap() {
-    var map = L.map('mapid').setView([51.505, -0.09], 3);
+    map = L.map('mapid').setView([51.505, -0.09], 3);
 
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw', {
         maxZoom: 18,
@@ -11,14 +12,11 @@ function initLeafletMap() {
         id: 'mapbox.light'
     }).addTo(map);
 
-    var popup = L.popup();
-
-    httpGetAsync('/freqs', function (response) {
-        var countryFreq = JSON.parse(response);
-        var mergedData = mergeCountryFreq(countryFreq['countries'], countryData);
-        geojson = L.geoJson(mergedData, {style: style, onEachFeature: onEachFeature}).addTo(map);
+    $(document).ready(function () {
+        $("#slider-range").slider({});
     });
 
+    var popup = L.popup();
     function onMapClick(e) {
         popup
             .setLatLng(e.latlng)
@@ -51,13 +49,13 @@ function style(feature) {
     };
 }
 
-function httpGetAsync(theUrl, callback) {
+function httpGetAsync(url, callback) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
             callback(xmlHttp.responseText);
     };
-    xmlHttp.open("GET", theUrl, true);
+    xmlHttp.open("GET", url, true);
     xmlHttp.send();
 }
 
@@ -112,3 +110,33 @@ function onEachFeature(feature, layer) {
 function zoomToFeature(e) {
     map.fitBounds(e.target.getBounds());
 }
+
+function getFreqs(beginYear, endYear, map) {
+    httpGetAsync('/freqs?start=' + beginYear + '&end=' + endYear, function (response) {
+        var countryFreq = JSON.parse(response);
+        var mergedData = mergeCountryFreq(countryFreq['countries'], countryData);
+        geojson = L.geoJson(mergedData, {style: style, onEachFeature: onEachFeature}).addTo(map);
+    });
+}
+
+$(function () {
+    var currYear = new Date().getFullYear();
+    $("#slider-range").slider({
+        range: true,
+        min: 1995,
+        max: currYear,
+        values: [1995, currYear],
+        slide: function (event, ui) {
+            $("#year").val(ui.values[0] + " - " + ui.values[1]);
+        },
+        create: function (event, ui) {
+            getFreqs('1995', currYear, map);
+        },
+        change: function (event, ui) {
+            map.removeLayer(geojson);
+            getFreqs(ui.values[0], ui.values[0], map);
+        }
+    });
+    $("#year").val($("#slider-range").slider("values", 0) +
+        " - " + $("#slider-range").slider("values", 1));
+});
