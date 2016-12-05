@@ -1,3 +1,12 @@
+h2 {
+    display: block;
+    font-size: 1.5em;
+    -webkit-margin-before: 0em;
+    -webkit-margin-after: 0.2em;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
+    font-weight: bold;
+}
 body {
     display: block;
     margin: 0px;
@@ -29,4 +38,30 @@ controls {
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
+}
+
+.legend {
+    line-height: 18px;
+    color: #555;
+    font-size: 10pt;
+}
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 1;
+}
+.info {
+    padding: 10px;
+    /*font: 14px/16px Arial, Helvetica, sans-serif;*/
+    background: rgba(255, 255, 255, 0.9);
+    /*box-shadow: 0 0 15px rgba(0,0,0,0.2);*/
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+.info h3 {
+    margin: 0 0 5px;
+    color: #777;
 }
