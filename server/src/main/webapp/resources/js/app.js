@@ -31,7 +31,7 @@ function initLeafletMap() {
     legend.onAdd = function (map) {
 
         var div = L.DomUtil.create('div', 'info legend'),
-            grades = [0, 10, 20, 50, 100, 200, 500, 1000],
+            grades = ["100m", "1000m", "2.500m", "5.000m", "10.000m", "25.000m", "50.000m"],
             // grades = [1000, 500, 200, 100, 50, 20, 10, 0],
             labels = [];
 
@@ -41,7 +41,7 @@ function initLeafletMap() {
         for (var i = 0; i < grades.length; i++) {
             div.innerHTML +=
                 '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
-                grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+                grades[i] + (grades[i + 1] ? ' &ndash; ' + grades[i + 1] + '<br>' : '+');
         }
 
         return div;
@@ -72,13 +72,13 @@ function initLeafletMap() {
 }
 
 function getColor(d) {
-    return d > 1000 ? '#800026' :
-        d > 500  ? '#BD0026' :
-            d > 200  ? '#E31A1C' :
-                d > 100  ? '#FC4E2A' :
-                    d > 50   ? '#FD8D3C' :
-                        d > 20   ? '#FEB24C' :
-                            d > 10   ? '#FED976' :
+        return d > 50000000000 ? '#800026' :
+        d > 25000000000  ? '#BD0026' :
+            d > 10000000000  ? '#E31A1C' :
+                d > 5000000000  ? '#FC4E2A' :
+                    d > 2500000000   ? '#FD8D3C' :
+                        d > 1000000000   ? '#FEB24C' :
+                            d > 100000000   ? '#FED976' :
                                 '#FFEDA0';
 }
 
@@ -110,10 +110,13 @@ function mergeCountryFreq(countries, geoJSON) {
     };
     $.each(countries, function (index, country) {
         if (country.name.search(new RegExp(country.name, "i")) != -1) {
-            var geometry = geoJSON.features.filter(function (features) {
+            console.log("current: " + country.name);
+            var filter = geoJSON.features.filter(function (features) {
                 return features.properties.name === country.name;
-            })[0].geometry;
-
+            })[0];
+            if (filter) {
+                var geometry = filter.geometry;
+            }
             mergedData.features.push({
                 "type": "Feature",
                 "properties": {"name": country.name, "frequency": country.frequency},

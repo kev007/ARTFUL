@@ -1,6 +1,6 @@
 package fmdir.controller;
 
-import fmdir.dao.FreqDao;
+import fmdir.dao.CountryFreqDao;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -10,17 +10,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 
 @RestController
 public class FreqController {
 
-    private final FreqDao repository;
+    private final CountryFreqDao repository;
 
     static Logger log = Logger.getLogger(FreqController.class.getName());
 
 
     @Autowired
-    public FreqController(FreqDao repository) {
+    public FreqController(CountryFreqDao repository) {
         this.repository = repository;
     }
 
@@ -30,20 +32,16 @@ public class FreqController {
         //TODO get real frequency data from database
         JSONObject response = new JSONObject();
         JSONArray countries = new JSONArray();
-        JSONObject germany = new JSONObject();
-        germany.put("name", "Germany");
-        germany.put("frequency", 50);
-        countries.put(germany);
-        JSONObject france = new JSONObject();
-        france.put("name", "France");
-        france.put("frequency", 90);
-        countries.put(france);
-        JSONObject poland = new JSONObject();
-        poland.put("name", "Poland");
-        poland.put("frequency", 200);
-        countries.put(poland);
-
         response.put("countries", countries);
+
+        List<Object[]> freqs = repository.findAllByYearBetween(start, end);
+
+        freqs.forEach((record) -> {
+            JSONObject currCountry = new JSONObject();
+            currCountry.put("name", (String) record[0]);
+            currCountry.put("frequency", (Long) record[1]);
+            countries.put(currCountry);
+        });
         return String.valueOf(response);
     }
 }
