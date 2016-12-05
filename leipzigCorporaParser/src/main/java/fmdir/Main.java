@@ -102,7 +102,7 @@ public class Main {
         InputStream input = null;
 
         try {
-            input = new FileInputStream("leipzigCorporaParser/config.properties");
+            input = new FileInputStream("config.properties");
 
             // load a properties file
             prop.load(input);
@@ -125,21 +125,21 @@ public class Main {
         String defaultPath = "";
         if(prop.getProperty("corpusPath") == null || prop.getProperty("corpusPath").isEmpty()) {
 
-            defaultPath = "leipzigCorporaParser/resources/txt/";
+            defaultPath = "resources/txt/";
 
             System.out.println("corpusPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("corpusPath", defaultPath);
         }
         if(prop.getProperty("translationPath") == null || prop.getProperty("translationPath").isEmpty()) {
 
-            defaultPath = "leipzigCorporaParser/resources/translations/";
+            defaultPath = "resources/translations/";
 
             System.out.println("translationPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("translationPath", defaultPath);
         }
         if(prop.getProperty("dbPath") == null || prop.getProperty("dbPath").isEmpty()) {
 
-            defaultPath = "database/translations.sqlite";
+            defaultPath = "../database/translations.sqlite";
 
             System.out.println("dbPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("dbPath", defaultPath);
