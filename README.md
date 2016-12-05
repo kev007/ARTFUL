@@ -1,4 +1,4 @@
-# Project Name
+# ARTFUL	An inteRactive counTry reFerence freqUency choropLeth
 
 TODO: Write a project description
 
