@@ -31,16 +31,15 @@ function initLeafletMap() {
     legend.onAdd = function (map) {
 
         var div = L.DomUtil.create('div', 'info legend'),
-            grades = ["100m", "1000m", "2.500m", "5.000m", "10.000m", "25.000m", "50.000m"],
-            // grades = [1000, 500, 200, 100, 50, 20, 10, 0],
-            labels = [];
-
+            grades = [numberWithCommas(100000000), numberWithCommas(1000000000), numberWithCommas(2500000000),
+                numberWithCommas(5000000000), numberWithCommas(10000000000), numberWithCommas(25000000000),
+                numberWithCommas(50000000000)];
         div.innerHTML += '<h3>Legend</h3>';
 
         // loop through our density intervals and generate a label with a colored square for each interval
         for (var i = 0; i < grades.length; i++) {
             div.innerHTML +=
-                '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+                '<i style="background:' + getColor(parseInt(grades[i].replace(/,/g, "")) + 1) + '"></i> ' +
                 grades[i] + (grades[i + 1] ? ' &ndash; ' + grades[i + 1] + '<br>' : '+');
         }
 
@@ -62,7 +61,7 @@ function initLeafletMap() {
     info.update = function (props) {
         this._div.innerHTML = '<h2>Interactive Country Reference Frequency Choropleth Map</h2>' +
             '<h3>Number of references to {SELECTED COUNTRY}</h3>' +  (props ?
-            '<b>' + props.name + '</b><br />' + props.freq
+            '<b>' + props.name + '</b><br />' + numberWithCommas(props.frequency)
                 : 'Hover over a country');
     };
 
@@ -80,6 +79,10 @@ function getColor(d) {
                         d > 1000000000   ? '#FEB24C' :
                             d > 100000000   ? '#FED976' :
                                 '#FFEDA0';
+}
+
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 function style(feature) {
@@ -110,12 +113,13 @@ function mergeCountryFreq(countries, geoJSON) {
     };
     $.each(countries, function (index, country) {
         if (country.name.search(new RegExp(country.name, "i")) != -1) {
-            console.log("current: " + country.name);
             var filter = geoJSON.features.filter(function (features) {
                 return features.properties.name === country.name;
             })[0];
             if (filter) {
                 var geometry = filter.geometry;
+            } else {
+                console.log("no geometry for: " + country.name)
             }
             mergedData.features.push({
                 "type": "Feature",
