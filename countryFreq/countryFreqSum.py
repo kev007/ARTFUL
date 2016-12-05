@@ -17,7 +17,8 @@ connection.commit()
 for locatedIn in locatedIns:
     for year in years:
         print("Inserting frequencies for " + locatedIn + "...")
-        insert = "INSERT INTO `country_freq` SELECT located_in AS country, sum(freq) AS freq, f.year" \
+        insert = "INSERT INTO `country_freq`(country, freq, year)" \
+                 " SELECT located_in AS country, sum(freq) AS freq, f.year" \
                  " FROM freq f, translation t WHERE t.located_in = '{}' AND f.year = {};".format(locatedIn, year)
         print(insert)
         cursor.execute(insert)
