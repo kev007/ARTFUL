@@ -1,0 +1,32 @@
+body {
+    display: block;
+    margin: 0px;
+}
+map {
+    z-index: 0;
+    opacity: 1;
+    position: absolute;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    width: 100%;
+    min-height: 300px;
+    height: -moz-calc(100%);
+    height: -webkit-calc(100%);
+    height: calc(100%);
+}
+controls {
+    position: fixed;
+    /* font-family: Arial, Helvetica, sans-serif; */
+    top: 10px;
+    right: 0px;
+    bottom: 0px;
+    left: 50px;
+    width: 400px;
+    height: 100px;
+    padding: 14px;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.9);
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
