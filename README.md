@@ -1,4 +1,5 @@
-# ARTFUL	An inteRactive counTry reFerence freqUency choropLeth
+# ARTFUL
+**A**n inte**R**active coun**T**ry re**F**erence freq**U**ency chorop**L**eth mapper
 
 TODO: Write a project description
 
