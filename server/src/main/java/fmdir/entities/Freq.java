@@ -11,6 +11,7 @@ public class Freq {
     private Integer id;
     private Integer translation_id;
     private Integer freq;
+    private String corpus;
     private Integer year;
 
     public Integer getId() {
@@ -35,6 +36,14 @@ public class Freq {
 
     public void setFreq(Integer freq) {
         this.freq = freq;
+    }
+
+    public String getCorpus() {
+        return corpus;
+    }
+
+    public void setCorpus(String corpus) {
+        this.corpus = corpus;
     }
 
     public Integer getYear() {

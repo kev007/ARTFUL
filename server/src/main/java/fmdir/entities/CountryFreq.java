@@ -4,8 +4,12 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "country_freq")
+@NamedQueries({
 @NamedQuery(name = "CountryFreq.findAllByYearBetween",
-        query = "select cf.country, sum(cf.freq) as  freq from CountryFreq cf where cf.year BETWEEN ?1 AND ?2 GROUP BY cf.country")
+        query = "select cf.country, sum(cf.freq) as  freq from CountryFreq cf where cf.year BETWEEN ?1 AND ?2 GROUP BY cf.country"),
+@NamedQuery(name = "CountryFreq.findTopTenMentioning", 
+		query = "SELECT f.corpus, SUM(f.freq) AS freqpercorp FROM Freq f, Translation t WHERE f.id = t.id AND t.locatedIn = ?1 AND f.year BETWEEN ?2 AND ?3 GROUP BY f.corpus ORDER BY freqpercorp DESC")
+})
 public class CountryFreq {
 
     @Id

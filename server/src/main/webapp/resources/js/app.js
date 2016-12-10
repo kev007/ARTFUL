@@ -158,18 +158,38 @@ function resetHighlight(e) {
 function onEachFeature(feature, layer) {
     layer.on({
         mouseover: highlightFeature,
-        mouseout: resetHighlight//,
-        // click: zoomToFeature
+        mouseout: resetHighlight,
+        click: getTopTen
     });
 }
 
+function getTopTen(e) {
+	var beginYear = $('#slider-range').slider("values",0);
+	var endYear = $('#slider-range').slider("values",1);
+	var country = e.target.feature.properties.name;
+	httpGetAsync('/topTen?country=' + country + '&start=' + beginYear + '&end=' + endYear, function (response) {
+        var topTen = JSON.parse(response).countries;
+        var content = "<table style=\"width:100%\"> <tr> <th>Country</th> <th>Frequency</th> </tr> ";
+        for(var i = 0; i < topTen.length; i++){
+        	var rec = topTen[i];
+        	content += "<tr> <td> " + rec.name + "</td> <td>" + rec.frequency + "</td> </tr>";
+        } 
+        content += "</table>";
+        
+        var popup = L.popup()
+        	.setLatLng(e.latlng)
+        	.setContent(content)
+        	.openOn(map);
+    });
+}
 
 function zoomToFeature(e) {
-    map.fitBounds(e.target.getBounds());
+//    map.fitBounds(e.target.getBounds());
+	console.log(e.target.feature.properties.name);
 }
 
 function getFreqs(beginYear, endYear, map) {
-    httpGetAsync('/freqs?start=' + beginYear + '&end=' + endYear, function (response) {
+	httpGetAsync('/freqs?start=' + beginYear + '&end=' + endYear, function (response) {
         var countryFreq = JSON.parse(response);
         var mergedData = mergeCountryFreq(countryFreq['countries'], countryData);
         geojson = L.geoJson(mergedData, {
@@ -177,6 +197,14 @@ function getFreqs(beginYear, endYear, map) {
             onEachFeature: onEachFeature
         }).addTo(map);
     });
+}
+
+function getTopTenMentioning(country, beginYear, endYear) {
+	httpGetAsync('/topTen?country=' + country + '&start=' + beginYear + '&end=' + endYear, function (response) {
+        var countryFreq = JSON.parse(response);
+        console.log(countryFreq);
+    });
+	
 }
 
 $(function () {

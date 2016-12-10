@@ -25,6 +25,26 @@ public class FreqController {
     public FreqController(CountryFreqDao repository) {
         this.repository = repository;
     }
+    
+    
+    @RequestMapping(value = "/topTen", method = RequestMethod.GET)
+    public String getFreqs(@RequestParam(value = "country") String country,
+    					   @RequestParam(value = "start") Integer start,
+                           @RequestParam(value = "end") Integer end) {
+    	List<Object[]> topTen = repository.findTopTenMentioning(country, start, end);
+        JSONObject response = new JSONObject();
+        JSONArray countries = new JSONArray();
+        response.put("countries", countries);
+    	topTen.forEach((record) -> {
+    		if(countries.length() <= 10){
+            JSONObject currCountry = new JSONObject();
+            currCountry.put("name", (String) record[0]);
+            currCountry.put("frequency", (Long) record[1]);
+            countries.put(currCountry);
+    		}
+    	});
+    	return String.valueOf(response);
+    }
 
     @RequestMapping(value = "/freqs", method = RequestMethod.GET)
     public String getFreqs(@RequestParam(value = "start", required = false, defaultValue = "1900") Integer start,
