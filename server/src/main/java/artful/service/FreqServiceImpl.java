@@ -1,7 +1,7 @@
-package fmdir.service;
+package artful.service;
 
-import fmdir.dao.FreqDao;
-import fmdir.entities.Freq;
+import artful.dao.FreqDao;
+import artful.entities.Freq;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

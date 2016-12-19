@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>groupId</groupId>
-    <artifactId>FMdIR</artifactId>
+    <artifactId>ARTFUL</artifactId>
     <version>1.0</version>
-    <name>2016-FMdIR-Thema1</name>
+    <name>ARTFUL</name>
 
     <packaging>pom</packaging>
 

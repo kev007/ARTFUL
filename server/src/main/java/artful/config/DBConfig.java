@@ -1,4 +1,4 @@
-package fmdir.config;
+package artful.config;
 
 import javax.sql.DataSource;
 

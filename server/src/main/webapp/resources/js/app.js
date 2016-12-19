@@ -60,9 +60,9 @@ function initLeafletMap() {
     //TODO: properly recieve the passed frequency
     info.update = function (props) {
         this._div.innerHTML = '<h2>Interactive Country Reference Frequency Choropleth Map</h2>' +
-            '<h3>Number of references to {SELECTED COUNTRY}</h3>' +  (props ?
-            '<b>' + props.name + '</b><br />' + numberWithCommas(props.frequency)
-                : 'Hover over a country');
+            '<h3>Number of references: ' +  (props ?
+            '<b>' + props.name + '</b></h3>' + numberWithCommas(props.frequency)
+                : '<i>none selected</i>');
     };
 
     info.addTo(map);
@@ -209,15 +209,21 @@ function getTopTenMentioning(country, beginYear, endYear) {
 
 $(function () {
     var currYear = new Date().getFullYear();
+    var handle = $( "#custom-handle" );
+    var handle2 = $( "#custom-handle2" );
     $("#slider-range").slider({
         range: true,
         min: 1995,
         max: currYear,
         values: [1995, currYear],
         slide: function (event, ui) {
+            handle.text( ui.values[0] );
+            handle2.text( ui.values[1] );
             $("#year").val(ui.values[0] + " - " + ui.values[1]);
         },
         create: function (event, ui) {
+            handle.text( $( this ).slider( "value" ) );
+            handle2.text( currYear );
             getFreqs('1995', currYear, map);
         },
         change: function (event, ui) {

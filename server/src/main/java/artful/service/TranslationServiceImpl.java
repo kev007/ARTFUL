@@ -1,7 +1,7 @@
-package fmdir.service;
+package artful.service;
 
-import fmdir.dao.TranslationDao;
-import fmdir.entities.Translation;
+import artful.dao.TranslationDao;
+import artful.entities.Translation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

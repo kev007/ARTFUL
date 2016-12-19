@@ -1,6 +1,6 @@
-package fmdir.controller;
+package artful.controller;
 
-import fmdir.dao.CountryFreqDao;
+import artful.dao.CountryFreqDao;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;

@@ -1,4 +1,4 @@
-package fmdir.config;
+package artful.config;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.function.SQLFunctionTemplate;

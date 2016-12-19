@@ -1,6 +1,6 @@
-package fmdir.controller;
+package artful.controller;
 
-import fmdir.dao.FreqDao;
+import artful.dao.FreqDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;

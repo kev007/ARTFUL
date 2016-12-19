@@ -1,7 +1,7 @@
-package fmdir.dao;
+package artful.dao;
 
 
-import fmdir.entities.Translation;
+import artful.entities.Translation;
 import org.springframework.data.repository.CrudRepository;
 
 public interface TranslationDao extends CrudRepository<Translation, Long> {

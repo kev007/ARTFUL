@@ -1,6 +1,6 @@
-package fmdir.service;
+package artful.service;
 
-import fmdir.entities.Freq;
+import artful.entities.Freq;
 
 
 public interface FreqService {

@@ -1,7 +1,7 @@
-package fmdir.dao;
+package artful.dao;
 
 
-import fmdir.entities.CountryFreq;
+import artful.entities.CountryFreq;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;

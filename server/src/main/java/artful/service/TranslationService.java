@@ -1,6 +1,6 @@
-package fmdir.service;
+package artful.service;
 
-import fmdir.entities.Translation;
+import artful.entities.Translation;
 
 
 public interface TranslationService {

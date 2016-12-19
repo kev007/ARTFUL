@@ -1,4 +1,4 @@
-package fmdir.entities;
+package artful.entities;
 
 import javax.persistence.*;
 

@@ -17,7 +17,7 @@
 
     <properties>
     	<java.version>1.8</java.version>
-        <start-class>fmdir.Server</start-class>
+        <start-class>artful.Server</start-class>
     </properties>
 
     <dependencies>

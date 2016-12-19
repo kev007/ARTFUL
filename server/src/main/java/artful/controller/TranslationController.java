@@ -1,7 +1,7 @@
-package fmdir.controller;
+package artful.controller;
 
-import fmdir.dao.TranslationDao;
-import fmdir.entities.Translation;
+import artful.dao.TranslationDao;
+import artful.entities.Translation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

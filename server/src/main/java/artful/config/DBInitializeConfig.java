@@ -1,4 +1,4 @@
-package fmdir.config;
+package artful.config;
 
 import org.springframework.context.annotation.Configuration;
 
