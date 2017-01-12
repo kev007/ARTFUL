@@ -32,7 +32,6 @@ for locatedIn in locatedIns:
         cursor.execute(query.format(locatedIn, corpus))
         connection.commit()
         result = cursor.fetchall()
-        # print(corpus + ": " + str(result))
         for entry in result:
             value = entry[0]
             year = entry[1]
@@ -40,6 +39,12 @@ for locatedIn in locatedIns:
             for dataframe in dataframes:
                 if dataframe[0] == year:
                     dataframe[1].set_value(locatedIn, corpus, value)
+                    # break
 
 connection.close()
-print(dataframes)
+
+for df in dataframes:
+    with open("results.txt", "a") as result_file:
+        result_file.write("Year: " + str(df[0]) + "\n")
+        result_file.write(df[1].to_string())
+        result_file.write("\n\n\n")
