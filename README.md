@@ -16,7 +16,7 @@ TODO: Write goals
 TODO: Describe the installation process
 
 ```
-sudo pip install -r countryFreq/requirements.txt 
+sudo pip3 install -r countryFreq/requirements.txt 
 ```
 
 ## Datasource
