@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sqlite3
 
@@ -39,12 +39,12 @@ for locatedIn in locatedIns:
             for dataframe in dataframes:
                 if dataframe[0] == year:
                     dataframe[1].set_value(locatedIn, corpus, value)
-                    # break
+                    break
 
 connection.close()
 
 for df in dataframes:
-    with open("results.txt", "a") as result_file:
+    with open("results.json", "a") as result_file:
         result_file.write("Year: " + str(df[0]) + "\n")
-        result_file.write(df[1].to_string())
+        result_file.write(df[1].to_json())
         result_file.write("\n\n\n")
