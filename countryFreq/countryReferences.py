@@ -40,15 +40,14 @@ for locatedIn in locatedIns:
             for dataframe in dataframes:
                 if dataframe[0] == year:
                     dataframe[1].set_value(locatedIn, corpus, value)
-        break
+    # break
 
 connection.close()
 
-# TODO replace single quoted string to double quoted
 json_result = json.loads('{"country references": []}')
 
 for df in dataframes:
     json_result['country references'].append({df[0]: df[1].to_csv()})
 
 with open("results.json", "w+") as result_file:
-    result_file.write(str(json_result))
+    result_file.write(json.dumps(json_result))
