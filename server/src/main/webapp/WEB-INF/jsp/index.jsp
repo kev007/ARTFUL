@@ -21,12 +21,15 @@
     <map id="mapid"></map>
 
     <controls>
-        <b>${message}</b>
-        <p>
-            <label for="year">Selected years</label>
-            <input type="text" id="year" readonly style="border:0; color:#f6931f; font-weight:bold;">
-        </p>
-        <div id="slider-range" style="width: 300px; margin-left: 10px "></div>
+        <%--<b>${message}</b>--%>
+        <%--<p>--%>
+            <%--<label for="year">Selected years</label>--%>
+            <%--<input type="text" id="year" readonly style="border:0; color:#f6931f; font-weight:bold;">--%>
+        <%--</p>--%>
+        <div id="slider-range">
+            <div id="custom-handle" class="ui-slider-handle"></div>
+            <div id="custom-handle2" class="ui-slider-handle"></div>
+        </div>
     </controls>
 
     <script>initLeafletMap();</script>

@@ -1,6 +1,7 @@
 var geojson;
 var map;
 var info;
+var legend;
 
 function initLeafletMap() {
     map = L.map('mapid').setView([51.505, -0.09], 3);
@@ -26,14 +27,19 @@ function initLeafletMap() {
         //     .openOn(map);
     }
 
-    var legend = L.control({position: 'bottomright'});
+    legend = L.control({position: 'bottomright'});
 
     legend.onAdd = function (map) {
 
         var div = L.DomUtil.create('div', 'info legend'),
-            grades = [numberWithCommas(100000000), numberWithCommas(1000000000), numberWithCommas(2500000000),
-                numberWithCommas(5000000000), numberWithCommas(10000000000), numberWithCommas(25000000000),
-                numberWithCommas(50000000000)];
+            grades = [
+                numberWithCommas(legend1),
+                numberWithCommas(legend2),
+                numberWithCommas(legend3),
+                numberWithCommas(legend4),
+                numberWithCommas(legend5),
+                numberWithCommas(legend6),
+                numberWithCommas(legend7)];
         div.innerHTML += '<h3>Legend</h3>';
 
         // loop through our density intervals and generate a label with a colored square for each interval
@@ -57,12 +63,11 @@ function initLeafletMap() {
     };
 
     // method that we will use to update the control based on feature properties passed
-    //TODO: properly recieve the passed frequency
     info.update = function (props) {
         this._div.innerHTML = '<h2>Interactive Country Reference Frequency Choropleth Map</h2>' +
-            '<h3>Number of references to {SELECTED COUNTRY}</h3>' +  (props ?
-            '<b>' + props.name + '</b><br />' + numberWithCommas(props.frequency)
-                : 'Hover over a country');
+            '<h3>Number of references: ' +  (props ?
+            '<b>' + props.name + '</b></h3>' + numberWithCommas(props.frequency)
+                : '<i>none selected</i>');
     };
 
     info.addTo(map);
@@ -70,15 +75,52 @@ function initLeafletMap() {
     map.on('click', onMapClick);
 }
 
+var freqMax = 0;
+var freqMin = 500000000000;
+var legend1 = 100000000;
+var legend2 = 1000000000;
+var legend3 = 2500000000;
+var legend4 = 5000000000;
+var legend5 = 10000000000;
+var legend6 = 25000000000;
+var legend7 = 50000000000;
+var legendCount = 8;
+
+function calculateLegend() {
+
+    //TODO: Algorithm stuff
+
+    var range = freqMax - freqMin;
+    var step = range / legendCount;
+    var significantFigures = 2;
+    // step = sigFigs(step, 2);
+    // freqMin = sigFigs(freqMin, 3);
+    // freqMax = sigFigs(freqMax, 3);
+
+    legend1 = sigFigs(freqMin, significantFigures+1);
+    legend2 = sigFigs(freqMin + (1 * step), significantFigures);
+    legend3 = sigFigs(freqMin + (2 * step), significantFigures);
+    legend4 = sigFigs(freqMin + (3 * step), significantFigures);
+    legend5 = sigFigs(freqMin + (4 * step), significantFigures);
+    legend6 = sigFigs(freqMin + (5 * step), significantFigures);
+    legend7 = sigFigs(freqMax, significantFigures);
+}
+
+function sigFigs(n, sig) {
+    var mult = Math.pow(10, sig - Math.floor(Math.log(n) / Math.LN10) - 1);
+    // return Math.round(n * mult) / mult;
+    return Math.floor(n * mult) / mult;
+}
+
 function getColor(d) {
-        return d > 50000000000 ? '#800026' :
-        d > 25000000000  ? '#BD0026' :
-            d > 10000000000  ? '#E31A1C' :
-                d > 5000000000  ? '#FC4E2A' :
-                    d > 2500000000   ? '#FD8D3C' :
-                        d > 1000000000   ? '#FEB24C' :
-                            d > 100000000   ? '#FED976' :
-                                '#FFEDA0';
+    return  d > legend7 ? '#800026' :
+            d > legend6 ? '#BD0026' :
+            d > legend5 ? '#E31A1C' :
+            d > legend4 ? '#FC4E2A' :
+            d > legend3 ? '#FD8D3C' :
+            d > legend2 ? '#FEB24C' :
+            d > legend1 ? '#FED976' :
+                          '#FFEDA0';
 }
 
 function numberWithCommas(x) {
@@ -106,8 +148,11 @@ function httpGetAsync(url, callback) {
     xmlHttp.send();
 }
 
+var mergedData;
 function mergeCountryFreq(countries, geoJSON) {
-    var mergedData = {
+    freqMax = 0;
+    freqMin = 500000000000;
+    mergedData = {
         "type": "FeatureCollection",
         "features": []
     };
@@ -126,13 +171,24 @@ function mergeCountryFreq(countries, geoJSON) {
                 "properties": {"name": country.name, "frequency": country.frequency},
                 "geometry": geometry
             });
+            if (country.frequency > freqMax) {
+                freqMax = country.frequency;
+            }
+            if (country.frequency < freqMin) {
+                freqMin = country.frequency;
+            }
         }
     });
+
+    calculateLegend();
+    legend.addTo(map);
+
     return mergedData;
 }
 
+var layer;
 function highlightFeature(e) {
-    var layer = e.target;
+    layer = e.target;
 
     layer.setStyle({
         weight: 5,
@@ -145,7 +201,7 @@ function highlightFeature(e) {
         layer.bringToFront();
     }
 
-    info.update(layer.feature.properties); //TODO: pass the correct properties
+    info.update(layer.feature.properties);
 }
 
 function resetHighlight(e) {
@@ -209,15 +265,21 @@ function getTopTenMentioning(country, beginYear, endYear) {
 
 $(function () {
     var currYear = new Date().getFullYear();
+    var handle = $( "#custom-handle" );
+    var handle2 = $( "#custom-handle2" );
     $("#slider-range").slider({
         range: true,
         min: 1995,
         max: currYear,
         values: [1995, currYear],
         slide: function (event, ui) {
+            handle.text( ui.values[0] );
+            handle2.text( ui.values[1] );
             $("#year").val(ui.values[0] + " - " + ui.values[1]);
         },
         create: function (event, ui) {
+            handle.text( $( this ).slider( "value" ) );
+            handle2.text( currYear );
             getFreqs('1995', currYear, map);
         },
         change: function (event, ui) {
