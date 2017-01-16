@@ -75,8 +75,8 @@ function initLeafletMap() {
     map.on('click', onMapClick);
 }
 
-var freqMax = 0;
-var freqMin = 500000000000;
+var freqMax = Math.min();
+var freqMin = Math.max();
 var legend1 = 100000000;
 var legend2 = 1000000000;
 var legend3 = 2500000000;
@@ -87,7 +87,6 @@ var legend7 = 50000000000;
 var legendCount = 8;
 
 function calculateLegend() {
-
     //TODO: Algorithm stuff
 
     var range = freqMax - freqMin;
@@ -97,13 +96,13 @@ function calculateLegend() {
     // freqMin = sigFigs(freqMin, 3);
     // freqMax = sigFigs(freqMax, 3);
 
-    legend1 = sigFigs(freqMin, significantFigures+1);
-    legend2 = sigFigs(freqMin + (1 * step), significantFigures);
-    legend3 = sigFigs(freqMin + (2 * step), significantFigures);
-    legend4 = sigFigs(freqMin + (3 * step), significantFigures);
-    legend5 = sigFigs(freqMin + (4 * step), significantFigures);
-    legend6 = sigFigs(freqMin + (5 * step), significantFigures);
-    legend7 = sigFigs(freqMax, significantFigures);
+    legend1 = parseInt(sigFigs(freqMin, significantFigures+1)) || 0;
+    legend2 = parseInt(sigFigs(freqMin + (1 * step), significantFigures)) || 0;
+    legend3 = parseInt(sigFigs(freqMin + (2 * step), significantFigures)) || 0;
+    legend4 = parseInt(sigFigs(freqMin + (3 * step), significantFigures)) || 0;
+    legend5 = parseInt(sigFigs(freqMin + (4 * step), significantFigures)) || 0;
+    legend6 = parseInt(sigFigs(freqMin + (5 * step), significantFigures)) || 0;
+    legend7 = parseInt(sigFigs(freqMax, significantFigures)) || 0;
 }
 
 function sigFigs(n, sig) {
@@ -150,8 +149,8 @@ function httpGetAsync(url, callback) {
 
 var mergedData;
 function mergeCountryFreq(countries, geoJSON) {
-    freqMax = 0;
-    freqMin = 500000000000;
+    freqMax = Math.max();
+    freqMin = Math.min();
     mergedData = {
         "type": "FeatureCollection",
         "features": []
@@ -164,7 +163,7 @@ function mergeCountryFreq(countries, geoJSON) {
             if (filter) {
                 var geometry = filter.geometry;
             } else {
-                console.log("no geometry for: " + country.name)
+                // console.log("no geometry for: " + country.name)
             }
             mergedData.features.push({
                 "type": "Feature",
@@ -215,8 +214,87 @@ function onEachFeature(feature, layer) {
     layer.on({
         mouseover: highlightFeature,
         mouseout: resetHighlight,
-        click: getTopTen
+        // click: getTopTen
+        click: getLanguageReferences
     });
+}
+
+// var countryReferences;
+function getCountryReferences(filter) {
+    // httpGetAsync('/countryRef?country=' + country + '&start=' + beginYear + '&end=' + endYear, function (response) {
+    // httpGetAsync('resources/data/country-references.js', function (response) {
+    // countryReferences = JSON.parse(response);
+    // });
+
+    freqMax = Math.max();
+    freqMin = Math.min();
+
+    var beginYear = $('#slider-range').slider("values",0);
+    var endYear = $('#slider-range').slider("values",1);
+    var years = endYear - beginYear;
+
+    var langIndex = countryReferences.languages.indexOf(filter);
+
+    console.log("get: " + filter + " " + langIndex);
+
+    for (var i = 0; i < mergedData.features.length; i++) {
+    // for (i = 0; i < 1; i++) {
+        var country = mergedData.features[i].properties.name;
+        // console.log(country);
+        var newFreq = 0;
+
+        for (var j = 0; j < years; j++) {
+            if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(country)) {
+                newFreq += countryReferences[beginYear + j][country][langIndex];
+            }
+        }
+        mergedData.features[i].properties.frequency = newFreq;
+        console.log(country + ": " + newFreq);
+
+        if (newFreq > freqMax) {
+            freqMax = newFreq;
+        }
+        if (newFreq < freqMin) {
+            freqMin = newFreq;
+        }
+
+    }
+
+    calculateLegend();
+    legend.addTo(map);
+
+    map.removeLayer(geojson);
+    geojson = L.geoJson(mergedData, {
+        style: style,
+        onEachFeature: onEachFeature
+    }).addTo(map);
+}
+
+// var countryReferences;
+function getLanguageReferences(e) {
+    var beginYear = $('#slider-range').slider("values",0);
+    var endYear = $('#slider-range').slider("values",1);
+    if (e.hasOwnProperty("target")) {
+        var country = e.target.feature.properties.name;
+    } else {
+        var country = e;
+    }
+    var years = endYear - beginYear;
+
+    // var country  = $('#countryFilter').val();
+    var length = countryReferences["languages"].length;
+    var data = new Array(length).fill(0);
+
+    for (var j = 0; j < years; j++) {
+        if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(country)) {
+            for (var i = 0; i < countryReferences[beginYear + j][country].length; i++) {
+                data[i] += countryReferences[beginYear + j][country][i];
+            }
+        }
+    }
+
+    console.log("get: " + country + " " + data);
+    $("code:last").html(country + ": " + data.toString());
 }
 
 function getTopTen(e) {
