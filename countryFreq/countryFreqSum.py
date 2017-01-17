@@ -1,8 +1,13 @@
 #!/usr/bin/python
 
 import sqlite3
+import configparser
 
-connection = sqlite3.connect("../database/translations.sqlite")
+config = configparser.ConfigParser()
+config.read('config.conf')
+
+connection = sqlite3.connect(config['database']['file'])
+
 cursor = connection.cursor()
 locatedInQuery = "SELECT DISTINCT located_in FROM translation;"
 cursor.execute(locatedInQuery)

@@ -15,6 +15,10 @@ TODO: Write goals
 
 TODO: Describe the installation process
 
+```
+sudo pip3 install -r countryFreq/requirements.txt 
+```
+
 ## Datasource
 The GeoJSON Data to colorize the countries is from <https://geojson-maps.kyd.com.au/>.
 
