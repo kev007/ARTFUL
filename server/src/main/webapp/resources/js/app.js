@@ -122,18 +122,19 @@ function sigFigs(n, sig) {
     return Math.floor(n * mult) / mult;
 }
 
+// http://colorbrewer2.org/#type=sequential&scheme=YlOrRd&n=9
 function getColor(d) {
-    return d > legend10 ? '#150c80' :
-            d > legend9 ? '#1e8010' :
-            d > legend8 ? '#807600' :
-            d > legend7 ? '#800026' :
-            d > legend6 ? '#BD0026' :
-            d > legend5 ? '#E31A1C' :
-            d > legend4 ? '#FC4E2A' :
-            d > legend3 ? '#FD8D3C' :
-            d > legend2 ? '#FEB24C' :
-            d > legend1 ? '#FED976' :
-                          '#FFEDA0';
+    return d > legend10 ? '#57000f' :
+            d > legend9 ? '#800026' :
+            d > legend8 ? '#bd0026' :
+            d > legend7 ? '#e31a1c' :
+            d > legend6 ? '#fc4e2a' :
+            d > legend5 ? '#fd8d3c' :
+            d > legend4 ? '#feb24c' :
+            d > legend3 ? '#fed976' :
+            d > legend2 ? '#ffeda0' :
+            d > legend1 ? '#ffffcc' :
+                          '#ffffff';
 }
 
 function numberWithCommas(x) {
