@@ -22,7 +22,7 @@ corpora = [i[0] for i in (list(cursor.fetchall()))]
 
 dataframes = []
 for i in years:
-    year_dataframe_pair = [i, DataFrame(index=locatedIns, columns=corpora)]
+    year_dataframe_pair = [i, DataFrame(0, index=locatedIns, columns=corpora)]
     dataframes.append(year_dataframe_pair)
 
 query = "SELECT sum(f.freq) total_freq, year FROM freq f, translation t WHERE f.translation_id = t.id " \

@@ -39,7 +39,11 @@ function initLeafletMap() {
                 numberWithCommas(legend4),
                 numberWithCommas(legend5),
                 numberWithCommas(legend6),
-                numberWithCommas(legend7)];
+                numberWithCommas(legend7),
+                numberWithCommas(legend8),
+                numberWithCommas(legend9),
+                numberWithCommas(legend10)
+            ];
         div.innerHTML += '<h3>Legend</h3>';
 
         // loop through our density intervals and generate a label with a colored square for each interval
@@ -75,6 +79,7 @@ function initLeafletMap() {
     map.on('click', onMapClick);
 }
 
+//TODO: overlapping legend levels?
 var freqMax = Math.min();
 var freqMin = Math.max();
 var legend1 = 100000000;
@@ -82,9 +87,12 @@ var legend2 = 1000000000;
 var legend3 = 2500000000;
 var legend4 = 5000000000;
 var legend5 = 10000000000;
-var legend6 = 25000000000;
-var legend7 = 50000000000;
-var legendCount = 8;
+var legend6 = 20000000000;
+var legend7 = 30000000000;
+var legend8 = 40000000000;
+var legend9 = 50000000000;
+var legend10 = 60000000000;
+var legendCount = 11;
 
 function calculateLegend() {
     //TODO: Algorithm stuff
@@ -102,7 +110,10 @@ function calculateLegend() {
     legend4 = parseInt(sigFigs(freqMin + (3 * step), significantFigures)) || 0;
     legend5 = parseInt(sigFigs(freqMin + (4 * step), significantFigures)) || 0;
     legend6 = parseInt(sigFigs(freqMin + (5 * step), significantFigures)) || 0;
-    legend7 = parseInt(sigFigs(freqMax, significantFigures)) || 0;
+    legend7 = parseInt(sigFigs(freqMin + (6 * step), significantFigures)) || 0;
+    legend8 = parseInt(sigFigs(freqMin + (7 * step), significantFigures)) || 0;
+    legend9 = parseInt(sigFigs(freqMin + (8 * step), significantFigures)) || 0;
+    legend10 = parseInt(sigFigs(freqMax, significantFigures)) || 0;
 }
 
 function sigFigs(n, sig) {
@@ -112,7 +123,10 @@ function sigFigs(n, sig) {
 }
 
 function getColor(d) {
-    return  d > legend7 ? '#800026' :
+    return d > legend10 ? '#150c80' :
+            d > legend9 ? '#1e8010' :
+            d > legend8 ? '#807600' :
+            d > legend7 ? '#800026' :
             d > legend6 ? '#BD0026' :
             d > legend5 ? '#E31A1C' :
             d > legend4 ? '#FC4E2A' :
