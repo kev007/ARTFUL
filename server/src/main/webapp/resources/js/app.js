@@ -179,7 +179,7 @@ function mergeCountryFreq(countries, geoJSON) {
     $.each(countries, function (index, country) {
         if (country.name.search(new RegExp(country.name, "i")) != -1) {
             var filter = geoJSON.features.filter(function (features) {
-                return features.properties.name === country.name;
+                return features.properties.name.toLowerCase() === country.name.toLowerCase();
             })[0];
             if (filter) {
                 var geometry = filter.geometry;
@@ -279,6 +279,10 @@ function getCorpus(country) {
     return country_language_mapping[country.toLowerCase()]
 }
 
+function getCountry(corpus) {
+    return language_country_mapping[corpus.toLowerCase()]
+}
+
 function getGeoJson(country) {
     var i;
     for (i = 0; i < countryData["features"].length; i++) {
@@ -297,10 +301,7 @@ function getCountryReferences(selectedCountry) {
     var years = endYear - beginYear;
 
     var corpus = getCorpus(selectedCountry);
-    console.log(selectedCountry + ": " + corpus);
     var langIndex = countryReferences.languages.indexOf(corpus);
-
-    console.log("get: " + selectedCountry + " " + langIndex);
 
     for (var i = 0; i < mergedData.features.length; i++) {
         var country = mergedData.features[i].properties.name;
@@ -344,9 +345,10 @@ function getLanguageReferences(country) {
     var endYear = $('#slider-range').slider("values",1);
     var years = endYear - beginYear;
 
-    // var country  = $('#countryFilter').val();
     var length = countryReferences["languages"].length;
     var data = new Array(length).fill(0);
+
+    var references = [];
 
     for (var j = 0; j < years; j++) {
         if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(country)) {
@@ -355,9 +357,15 @@ function getLanguageReferences(country) {
             }
         }
     }
+    function transform(element, index) {
+        var country_for_corpus = getCountry(countryReferences['languages'][index]);
+        if (country_for_corpus && country.toLowerCase() !== country_for_corpus.toLowerCase()) {
+            references.push({'name': country_for_corpus, 'frequency': element});
+        }
+    }
 
-    console.log("get: " + country + " " + data);
-    $("code:last").html(country + ": " + data.toString());
+    data.forEach(transform);
+    mergedData = mergeCountryFreq(references, countryData);
 
     calculateLegend();
     legend.addTo(map);
@@ -367,6 +375,7 @@ function getLanguageReferences(country) {
         style: style,
         onEachFeature: onEachFeature
     }).addTo(map);
+    colorCountry(selectedCountry);
 }
 
 function getTopTen(e) {
@@ -391,7 +400,7 @@ function getTopTen(e) {
 
 function zoomToFeature(e) {
 //    map.fitBounds(e.target.getBounds());
-	console.log(e.target.feature.properties.name);
+	// console.log(e.target.feature.properties.name);
 }
 
 function addGeoJsonMap(data, map) {
@@ -413,7 +422,7 @@ function getFreqs(beginYear, endYear, map) {
 function getTopTenMentioning(country, beginYear, endYear) {
 	httpGetAsync('/topTen?country=' + country + '&start=' + beginYear + '&end=' + endYear, function (response) {
         var countryFreq = JSON.parse(response);
-        console.log(countryFreq);
+        //console.log(countryFreq);
     });
 	
 }

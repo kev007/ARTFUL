@@ -23,22 +23,6 @@
 
 <body>
     <map id="mapid"></map>
-
-    <debug>
-        [TEST] Language filter: <input type="text" id="langFilter" value="eng"/>
-        <input type="submit" value="Submit" onClick="getCountryReferences($('#langFilter').val())">
-        <input type="submit" value="[DEBUG]" onClick="console.log(countryReferences.languages), $('code:last').html('languages: ' + countryReferences.languages.toString())">
-        <br>
-        [TEST] Country filter: <input type="text" id="countryFilter" value="Germany"/>
-        <input type="submit" value="Submit" onClick="getLanguageReferences($('#countryFilter').val())">
-        <br>
-        <div>
-            <code>
-                [DEBUG]
-            </code>
-        </div>
-    </debug>
-
     <controls>
         <%--<b>${message}</b>--%>
         <%--<p>--%>
