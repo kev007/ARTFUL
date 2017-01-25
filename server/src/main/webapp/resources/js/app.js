@@ -18,14 +18,6 @@ function initLeafletMap() {
         $("#slider-range").slider({});
     });
 
-    var popup = L.popup();
-    function onMapClick(e) {
-        // popup
-        //     .setLatLng(e.latlng)
-        //     .setContent("You clicked the map at " + e.latlng.toString())
-        //     .openOn(map);
-    }
-
     legend = L.control({position: 'bottomright'});
 
     legend.onAdd = function (map) {
@@ -74,8 +66,6 @@ function initLeafletMap() {
     };
 
     info.addTo(map);
-
-    map.on('click', onMapClick);
 }
 
 //TODO: overlapping legend levels?
@@ -228,8 +218,13 @@ function onEachFeature(feature, layer) {
     layer.on({
         mouseover: highlightFeature,
         mouseout: resetHighlight,
-        click: getCountryReferences
+        click: proceedCountryReferences
     });
+}
+
+function proceedCountryReferences(clickObject) {
+    var selection = $('input[name=references-radio]:checked').val();
+    return selection == 'ingoing' ? getCountryReferences(clickObject) : getLanguageReferences(clickObject)
 }
 
 function getCorpus(country) {
@@ -253,9 +248,7 @@ function getCountryReferences(clickObject) {
     console.log("get: " + selectedCountry + " " + langIndex);
 
     for (var i = 0; i < mergedData.features.length; i++) {
-    // for (i = 0; i < 1; i++) {
         var country = mergedData.features[i].properties.name;
-        // console.log(country);
         var newFreq = 0;
 
         for (var j = 0; j < years; j++) {
@@ -282,7 +275,6 @@ function getCountryReferences(clickObject) {
     }).addTo(map);
 }
 
-// var countryReferences;
 function getLanguageReferences(country) {
     var beginYear = $('#slider-range').slider("values",0);
     var endYear = $('#slider-range').slider("values",1);

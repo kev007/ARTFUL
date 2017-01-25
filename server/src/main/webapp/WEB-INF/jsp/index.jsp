@@ -49,6 +49,13 @@
             <div id="custom-handle" class="ui-slider-handle"></div>
             <div id="custom-handle2" class="ui-slider-handle"></div>
         </div>
+        <br/>
+        <label>
+            <input type="radio" name="references-radio" value="ingoing" checked>
+        </label>Ingoing References
+        <label>
+            <input type="radio" name="references-radio" value="outgoing">
+        </label>Outgoing References
     </controls>
 
     <script>initLeafletMap();
