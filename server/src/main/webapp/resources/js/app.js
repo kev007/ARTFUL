@@ -1,7 +1,10 @@
 var geojson;
+var selectedGeojson;
 var map;
 var info;
 var legend;
+var selectedCountry;
+var selectedCountryReferences = 0;
 
 function initLeafletMap() {
     map = L.map('mapid').setView([51.505, -0.09], 3);
@@ -61,10 +64,11 @@ function initLeafletMap() {
     info.update = function (props) {
         this._div.innerHTML = '<h2>Interactive Country Reference Frequency Choropleth Map</h2>' +
             '<h3>Number of references: ' +  (props ?
-            '<b>' + props.name + '</b></h3>' + numberWithCommas(props.frequency)
+                '<b>' + props.name + '</b></h3>' + (props.name === selectedCountry ? selectedCountryReferences
+                    : props.frequency)
                 : '<i>none selected</i>');
-    };
 
+    };
     info.addTo(map);
 }
 
@@ -141,6 +145,17 @@ function style(feature) {
     };
 }
 
+function styleSelectedCountry(feature) {
+    return {
+        fillColor: '#478726',
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        dashArray: '3',
+        fillOpacity: 0.7
+    };
+}
+
 function httpGetAsync(url, callback) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
@@ -207,8 +222,20 @@ function highlightFeature(e) {
     info.update(layer.feature.properties);
 }
 
+function colorCountry(country) {
+    if (selectedGeojson) {
+        map.removeLayer(selectedGeojson);
+    }
+    selectedGeojson = L.geoJson(getGeoJson(country), {
+        style: styleSelectedCountry,
+        onEachFeature: onEachFeature
+    }).addTo(map);
+}
 function resetHighlight(e) {
     geojson.resetStyle(e.target);
+    if (selectedCountry) {
+        colorCountry(selectedCountry);
+    }
 
     info.update();
 }
@@ -224,16 +251,29 @@ function onEachFeature(feature, layer) {
 
 function proceedCountryReferences(clickObject) {
     var selection = $('input[name=references-radio]:checked').val();
-    return selection == 'ingoing' ? getCountryReferences(clickObject) : getLanguageReferences(clickObject)
+    if (selectedCountry && selectedCountry.toLowerCase() === clickObject.target.feature.properties.name.toLowerCase()) {
+        selectedCountry = '';
+        selectedCountryReferences = 0;
+    } else {
+        selectedCountry = clickObject.target.feature.properties.name;
+    }
+    return selection == 'ingoing' ? getCountryReferences(selectedCountry) : getLanguageReferences(selectedCountry)
 }
 
 function getCorpus(country) {
     return country_language_mapping[country.toLowerCase()]
 }
 
-function getCountryReferences(clickObject) {
-    var selectedCountry = clickObject.target.feature.properties.name;
+function getGeoJson(country) {
+    var i;
+    for (i = 0; i < countryData["features"].length; i++) {
+        if (countryData["features"][i]["properties"]["name"].toLowerCase() === country.toLowerCase()) {
+            return {"type": "FeatureCollection", "features": [countryData["features"][i]]};
+        }
+    }
+}
 
+function getCountryReferences(selectedCountry) {
     freqMax = Math.max();
     freqMin = Math.min();
 
@@ -253,7 +293,11 @@ function getCountryReferences(clickObject) {
 
         for (var j = 0; j < years; j++) {
             if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(country)) {
-                newFreq += countryReferences[beginYear + j][country][langIndex];
+                if (selectedCountry != country) {
+                    newFreq += countryReferences[beginYear + j][country][langIndex];
+                } else {
+                    selectedCountryReferences = countryReferences[beginYear + j][country][langIndex];
+                }
             }
         }
         mergedData.features[i].properties.frequency = newFreq;
@@ -269,10 +313,15 @@ function getCountryReferences(clickObject) {
     legend.addTo(map);
 
     map.removeLayer(geojson);
+    if (selectedGeojson) {
+        map.removeLayer(selectedGeojson);
+    }
     geojson = L.geoJson(mergedData, {
         style: style,
         onEachFeature: onEachFeature
     }).addTo(map);
+
+    colorCountry(selectedCountry);
 }
 
 function getLanguageReferences(country) {
@@ -375,6 +424,7 @@ $(function () {
         },
         change: function (event, ui) {
             map.removeLayer(geojson);
+            map.removeLayer(selectedGeojson);
             getFreqs(ui.values[0], ui.values[1], map);
         }
     });
