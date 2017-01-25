@@ -47,6 +47,8 @@ function initLeafletMap() {
                 '<i style="background:' + getColor(parseInt(grades[i].replace(/,/g, "")) + 1) + '"></i> ' +
                 grades[i] + (grades[i + 1] ? ' &ndash; ' + grades[i + 1] + '<br>' : '+');
         }
+        div.innerHTML +=
+            '<br/><b style="background:#478726"></b>Selected Country<br>';
 
         return div;
     };
@@ -340,11 +342,6 @@ function getCountryReferences(selectedCountry) {
 function getLanguageReferences(country) {
     var beginYear = $('#slider-range').slider("values",0);
     var endYear = $('#slider-range').slider("values",1);
-    if (country.hasOwnProperty("target")) {
-        var country = country.target.feature.properties.name;
-    } else {
-        var country = country;
-    }
     var years = endYear - beginYear;
 
     // var country  = $('#countryFilter').val();
