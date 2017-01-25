@@ -20,7 +20,6 @@ function initLeafletMap() {
 
     var popup = L.popup();
     function onMapClick(e) {
-        console.log("You clicked on: " + e.latlng.toString());
         // popup
         //     .setLatLng(e.latlng)
         //     .setContent("You clicked the map at " + e.latlng.toString())
@@ -229,17 +228,16 @@ function onEachFeature(feature, layer) {
     layer.on({
         mouseover: highlightFeature,
         mouseout: resetHighlight,
-        // click: getTopTen
-        click: getLanguageReferences
+        click: getCountryReferences
     });
 }
 
-// var countryReferences;
-function getCountryReferences(filter) {
-    // httpGetAsync('/countryRef?country=' + country + '&start=' + beginYear + '&end=' + endYear, function (response) {
-    // httpGetAsync('resources/data/country-references.js', function (response) {
-    // countryReferences = JSON.parse(response);
-    // });
+function getCorpus(country) {
+    return country_language_mapping[country.toLowerCase()]
+}
+
+function getCountryReferences(clickObject) {
+    var selectedCountry = clickObject.target.feature.properties.name;
 
     freqMax = Math.max();
     freqMin = Math.min();
@@ -248,9 +246,11 @@ function getCountryReferences(filter) {
     var endYear = $('#slider-range').slider("values",1);
     var years = endYear - beginYear;
 
-    var langIndex = countryReferences.languages.indexOf(filter);
+    var corpus = getCorpus(selectedCountry);
+    console.log(selectedCountry + ": " + corpus);
+    var langIndex = countryReferences.languages.indexOf(corpus);
 
-    console.log("get: " + filter + " " + langIndex);
+    console.log("get: " + selectedCountry + " " + langIndex);
 
     for (var i = 0; i < mergedData.features.length; i++) {
     // for (i = 0; i < 1; i++) {
@@ -264,15 +264,12 @@ function getCountryReferences(filter) {
             }
         }
         mergedData.features[i].properties.frequency = newFreq;
-        console.log(country + ": " + newFreq);
-
         if (newFreq > freqMax) {
             freqMax = newFreq;
         }
         if (newFreq < freqMin) {
             freqMin = newFreq;
         }
-
     }
 
     calculateLegend();
@@ -286,13 +283,13 @@ function getCountryReferences(filter) {
 }
 
 // var countryReferences;
-function getLanguageReferences(e) {
+function getLanguageReferences(country) {
     var beginYear = $('#slider-range').slider("values",0);
     var endYear = $('#slider-range').slider("values",1);
-    if (e.hasOwnProperty("target")) {
-        var country = e.target.feature.properties.name;
+    if (country.hasOwnProperty("target")) {
+        var country = country.target.feature.properties.name;
     } else {
-        var country = e;
+        var country = country;
     }
     var years = endYear - beginYear;
 
@@ -310,6 +307,15 @@ function getLanguageReferences(e) {
 
     console.log("get: " + country + " " + data);
     $("code:last").html(country + ": " + data.toString());
+
+    calculateLegend();
+    legend.addTo(map);
+
+    map.removeLayer(geojson);
+    geojson = L.geoJson(mergedData, {
+        style: style,
+        onEachFeature: onEachFeature
+    }).addTo(map);
 }
 
 function getTopTen(e) {
