@@ -58,9 +58,8 @@
         </label>Outgoing References
     </controls>
 
-    <script>initLeafletMap();
-    //var reference_array = $.csv.toArrays(countryReferences['country references'][0][2011], {separator: "\n"});
-    //console.log(reference_array)
+    <script>
+        initLeafletMap();
     </script>
 
 </body>

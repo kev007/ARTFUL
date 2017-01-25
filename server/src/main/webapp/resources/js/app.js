@@ -5,6 +5,7 @@ var info;
 var legend;
 var selectedCountry;
 var selectedCountryReferences = 0;
+var mergedData;
 
 function initLeafletMap() {
     map = L.map('mapid').setView([51.505, -0.09], 3);
@@ -166,7 +167,6 @@ function httpGetAsync(url, callback) {
     xmlHttp.send();
 }
 
-var mergedData;
 function mergeCountryFreq(countries, geoJSON) {
     freqMax = Math.max();
     freqMin = Math.min();
@@ -249,11 +249,24 @@ function onEachFeature(feature, layer) {
     });
 }
 
+function removeCustomLayer() {
+    if (geojson) {
+        map.removeLayer(geojson);
+    }
+    if (selectedGeojson) {
+        map.removeLayer(selectedGeojson);
+    }
+}
 function proceedCountryReferences(clickObject) {
     var selection = $('input[name=references-radio]:checked').val();
     if (selectedCountry && selectedCountry.toLowerCase() === clickObject.target.feature.properties.name.toLowerCase()) {
         selectedCountry = '';
         selectedCountryReferences = 0;
+        map.removeLayer(geojson);
+        removeCustomLayer();
+        var beginYear = $('#slider-range').slider("values", 0);
+        var endYear = $('#slider-range').slider("values", 1);
+        getFreqs(beginYear, endYear, map);
     } else {
         selectedCountry = clickObject.target.feature.properties.name;
     }
@@ -384,14 +397,19 @@ function zoomToFeature(e) {
 	console.log(e.target.feature.properties.name);
 }
 
+function addGeoJsonMap(data, map) {
+    removeCustomLayer();
+    geojson = L.geoJson(data, {
+        style: style,
+        onEachFeature: onEachFeature
+    }).addTo(map);
+
+}
 function getFreqs(beginYear, endYear, map) {
-	httpGetAsync('/freqs?start=' + beginYear + '&end=' + endYear, function (response) {
+    httpGetAsync('/freqs?start=' + beginYear + '&end=' + endYear, function (response) {
         var countryFreq = JSON.parse(response);
-        var mergedData = mergeCountryFreq(countryFreq['countries'], countryData);
-        geojson = L.geoJson(mergedData, {
-            style: style,
-            onEachFeature: onEachFeature
-        }).addTo(map);
+        mergedData = mergeCountryFreq(countryFreq['countries'], countryData);
+        addGeoJsonMap(mergedData, map);
     });
 }
 
@@ -424,7 +442,9 @@ $(function () {
         },
         change: function (event, ui) {
             map.removeLayer(geojson);
-            map.removeLayer(selectedGeojson);
+            if (selectedGeojson) {
+                map.removeLayer(selectedGeojson);
+            }
             getFreqs(ui.values[0], ui.values[1], map);
         }
     });
