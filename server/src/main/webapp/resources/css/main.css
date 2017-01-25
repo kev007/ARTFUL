@@ -89,6 +89,13 @@ controls {
     margin-right: 8px;
     opacity: 1;
 }
+.legend b {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 1;
+}
 .info {
     top: 50px;
     padding: 10px;
