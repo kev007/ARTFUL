@@ -260,15 +260,18 @@ function removeCustomLayer() {
     }
 }
 function proceedCountryReferences(clickObject) {
+    removeCustomLayer();
+    //TODO selectedCountryReferences wann zurücksetzen?
+    //selectedCountryReferences = 0;
     var selection = $('input[name=references-radio]:checked').val();
     if (selectedCountry && selectedCountry.toLowerCase() === clickObject.target.feature.properties.name.toLowerCase()) {
         selectedCountry = '';
         selectedCountryReferences = 0;
-        map.removeLayer(geojson);
-        removeCustomLayer();
         var beginYear = $('#slider-range').slider("values", 0);
         var endYear = $('#slider-range').slider("values", 1);
-        getFreqs(beginYear, endYear, map);
+        getFreqs(beginYear, endYear, function () {
+            addGeoJsonMap(mergedData, map);
+        });
     } else {
         selectedCountry = clickObject.target.feature.properties.name;
     }
@@ -411,11 +414,11 @@ function addGeoJsonMap(data, map) {
     }).addTo(map);
 
 }
-function getFreqs(beginYear, endYear, map) {
+function getFreqs(beginYear, endYear, extendedCallback) {
     httpGetAsync('/freqs?start=' + beginYear + '&end=' + endYear, function (response) {
         var countryFreq = JSON.parse(response);
         mergedData = mergeCountryFreq(countryFreq['countries'], countryData);
-        addGeoJsonMap(mergedData, map);
+        extendedCallback();
     });
 }
 
@@ -444,14 +447,18 @@ $(function () {
         create: function (event, ui) {
             handle.text( $( this ).slider( "value" ) );
             handle2.text( currYear );
-            getFreqs('1995', currYear, map);
+            getFreqs('1995', currYear, function () {
+                addGeoJsonMap(mergedData, map);
+            });
         },
         change: function (event, ui) {
             map.removeLayer(geojson);
             if (selectedGeojson) {
                 map.removeLayer(selectedGeojson);
             }
-            getFreqs(ui.values[0], ui.values[1], map);
+            getFreqs(ui.values[0], ui.values[1], function () {
+                addGeoJsonMap(mergedData, map);
+            });
         }
     });
     $("#year").val($("#slider-range").slider("values", 0) +
