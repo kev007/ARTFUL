@@ -4,7 +4,6 @@ var map;
 var info;
 var legend;
 var selectedCountry;
-var selectedCountryReferences = 0;
 var mergedData;
 
 function initLeafletMap() {
@@ -67,8 +66,7 @@ function initLeafletMap() {
     info.update = function (props) {
         this._div.innerHTML = '<h2>Interactive Country Reference Frequency Choropleth Map</h2>' +
             '<h3>Number of references: ' +  (props ?
-                '<b>' + props.name + '</b></h3>' + (props.name === selectedCountry ? selectedCountryReferences
-                    : props.frequency)
+                '<b>' + props.name + '</b></h3>' + numberWithCommas(props.frequency)
                 : '<i>none selected</i>');
 
     };
@@ -191,11 +189,20 @@ function mergeCountryFreq(countries, geoJSON) {
                 "properties": {"name": country.name, "frequency": country.frequency},
                 "geometry": geometry
             });
-            if (country.frequency > freqMax) {
-                freqMax = country.frequency;
+            //Ignore the selected country for legend calculation
+            if (country.frequency > freqMax && country.name.toLowerCase() !== selectedCountry) {
+                if(selectedCountry && country.name.toLowerCase() !== selectedCountry.toLowerCase()){
+                    freqMax = country.frequency;
+                } else if(!selectedCountry){
+                    freqMax = country.frequency;
+                }
             }
-            if (country.frequency < freqMin) {
-                freqMin = country.frequency;
+            if (country.frequency < freqMin && country.name.toLowerCase() !== selectedCountry) {
+                if(selectedCountry && country.name.toLowerCase() !== selectedCountry.toLowerCase()){
+                    freqMin = country.frequency;
+                } else if(!selectedCountry){
+                    freqMin = country.frequency;
+                }
             }
         }
     });
@@ -266,7 +273,6 @@ function proceedCountryReferences(clickObject) {
     var selection = $('input[name=references-radio]:checked').val();
     if (selectedCountry && selectedCountry.toLowerCase() === clickObject.target.feature.properties.name.toLowerCase()) {
         selectedCountry = '';
-        selectedCountryReferences = 0;
         var beginYear = $('#slider-range').slider("values", 0);
         var endYear = $('#slider-range').slider("values", 1);
         getFreqs(beginYear, endYear, function () {
@@ -312,18 +318,14 @@ function getCountryReferences(selectedCountry) {
 
         for (var j = 0; j < years; j++) {
             if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(country)) {
-                if (selectedCountry != country) {
-                    newFreq += countryReferences[beginYear + j][country][langIndex];
-                } else {
-                    selectedCountryReferences = countryReferences[beginYear + j][country][langIndex];
-                }
+                newFreq += countryReferences[beginYear + j][country][langIndex];
             }
         }
         mergedData.features[i].properties.frequency = newFreq;
-        if (newFreq > freqMax) {
+        if (newFreq > freqMax && country.toLowerCase() !== selectedCountry.toLowerCase()) {
             freqMax = newFreq;
         }
-        if (newFreq < freqMin) {
+        if (newFreq < freqMin && country.toLowerCase() !== selectedCountry.toLowerCase()) {
             freqMin = newFreq;
         }
     }
@@ -331,13 +333,13 @@ function getCountryReferences(selectedCountry) {
     calculateLegend();
     legend.addTo(map);
 
-    map.removeLayer(geojson);
-    if (selectedGeojson) {
-        map.removeLayer(selectedGeojson);
-    }
+    removeCustomLayer();
     geojson = L.geoJson(mergedData, {
         style: style,
-        onEachFeature: onEachFeature
+        onEachFeature: onEachFeature,
+        filter: function (feature, layer) {
+            return feature.properties.name.toLowerCase() !== country.toLowerCase();
+        }
     }).addTo(map);
 
     colorCountry(selectedCountry);
@@ -362,7 +364,7 @@ function getLanguageReferences(country) {
     }
     function transform(element, index) {
         var country_for_corpus = getCountry(countryReferences['languages'][index]);
-        if (country_for_corpus && country.toLowerCase() !== country_for_corpus.toLowerCase()) {
+        if (country_for_corpus) {
             references.push({'name': country_for_corpus, 'frequency': element});
         }
     }
@@ -373,10 +375,13 @@ function getLanguageReferences(country) {
     calculateLegend();
     legend.addTo(map);
 
-    map.removeLayer(geojson);
+    removeCustomLayer();
     geojson = L.geoJson(mergedData, {
         style: style,
-        onEachFeature: onEachFeature
+        onEachFeature: onEachFeature,
+        filter: function (feature, layer) {
+            return feature.properties.name.toLowerCase() !== country.toLowerCase();
+        }
     }).addTo(map);
     colorCountry(selectedCountry);
 }
