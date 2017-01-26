@@ -170,10 +170,7 @@ function httpGetAsync(url, callback) {
 function mergeCountryFreq(countries, geoJSON) {
     freqMax = Math.max();
     freqMin = Math.min();
-    mergedData = {
-        "type": "FeatureCollection",
-        "features": []
-    };
+    mergedData = geoJSON;
     $.each(countries, function (index, country) {
         if (country.name.search(new RegExp(country.name, "i")) != -1) {
             var filter = geoJSON.features.filter(function (features) {
@@ -184,11 +181,12 @@ function mergeCountryFreq(countries, geoJSON) {
             } else {
                 // console.log("no geometry for: " + country.name)
             }
-            mergedData.features.push({
-                "type": "Feature",
-                "properties": {"name": country.name, "frequency": country.frequency},
-                "geometry": geometry
-            });
+            for (var i = 0; i < mergedData.features.length; i++) {
+                if (mergedData.features[i].properties.name.toLowerCase() === country.name.toLowerCase()) {
+                    mergedData.features[i].properties.frequency = country.frequency;
+                    break;
+                }
+            }
             //Ignore the selected country for legend calculation
             if (country.frequency > freqMax && country.name.toLowerCase() !== selectedCountry) {
                 if(selectedCountry && country.name.toLowerCase() !== selectedCountry.toLowerCase()){
