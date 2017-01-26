@@ -132,7 +132,12 @@ function getColor(d) {
 }
 
 function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    if (x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    else {
+        return ''
+    }
 }
 
 function style(feature) {
@@ -170,17 +175,13 @@ function httpGetAsync(url, callback) {
 function mergeCountryFreq(countries, geoJSON) {
     freqMax = Math.max();
     freqMin = Math.min();
+    function transform(element, index) {
+        element.properties.frequency = 0;
+    }
+    geoJSON['features'].forEach(transform);
     mergedData = geoJSON;
     $.each(countries, function (index, country) {
         if (country.name.search(new RegExp(country.name, "i")) != -1) {
-            var filter = geoJSON.features.filter(function (features) {
-                return features.properties.name.toLowerCase() === country.name.toLowerCase();
-            })[0];
-            if (filter) {
-                var geometry = filter.geometry;
-            } else {
-                // console.log("no geometry for: " + country.name)
-            }
             for (var i = 0; i < mergedData.features.length; i++) {
                 if (mergedData.features[i].properties.name.toLowerCase() === country.name.toLowerCase()) {
                     mergedData.features[i].properties.frequency = country.frequency;
