@@ -40,7 +40,7 @@ public class DatabaseTools {
                 long updateStart = System.currentTimeMillis();
 
                 PreparedStatement insertTranslation = connection.prepareStatement("" +
-                        "insert into translation (id, w_id, word, language, located_in) values (?1, ?2, ?3, ?4, ?5);");
+                        "insert into translation (id, w_id, word, language, located_in, category) values (?1, ?2, ?3, ?4, ?5, ?6);");
                 PreparedStatement insertWord = connection.prepareStatement("" +
                         "insert into freq (id, translation_id, corpus, freq, year) values (?1, ?2, ?3, ?4, ?5);");
 
@@ -54,6 +54,7 @@ public class DatabaseTools {
                     String word = translation.citylabel;
 //                    String language = translation.language;
                     String locatedIn = translation.locatedIn;
+                    String category = translation.category;
                     int currentTranslationID;
 
                     if (wordFreq.containsKey(word)) {
@@ -73,6 +74,7 @@ public class DatabaseTools {
                             insertTranslation.setString(3, word);
                             insertTranslation.setString(4, language);
                             insertTranslation.setString(5, locatedIn);
+                            insertTranslation.setString(6, category);
                             insertTranslation.execute();
                         }
                         wordID++;

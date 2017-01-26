@@ -37,6 +37,7 @@ public class FileTools {
 
         for (Path path: allTranslationPaths) {
             try {
+            	String category = path.toString().substring(path.toString().lastIndexOf(File.separatorChar) + 1, path.toString().lastIndexOf("."));
                 br = new BufferedReader(new FileReader(path.toString()));
                 String currentLine;
                 //Skip line
@@ -66,7 +67,7 @@ public class FileTools {
                     } else {
                         translations = translationMap.get(lang);
                     }
-                    translations.add(new Translation(id, citylabel, locatedIn, lang));
+                    translations.add(new Translation(id, citylabel, locatedIn, lang, category));
                     translationMap.put(lang, translations);
 
                     found++;

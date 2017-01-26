@@ -8,11 +8,13 @@ public class Translation {
     public String citylabel;
     public String locatedIn;
     public String language;
+    public String category;
 
-    public Translation(int id, String citylabel, String locatedIn, String language) {
+    public Translation(int id, String citylabel, String locatedIn, String language, String category) {
         this.id = id;
         this.citylabel = citylabel;
         this.locatedIn = locatedIn;
         this.language = language;
+        this.category = category;
     }
 }
