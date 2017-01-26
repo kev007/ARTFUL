@@ -4,7 +4,6 @@ var map;
 var info;
 var legend;
 var selectedCountry;
-var selectedCountryReferences = 0;
 var mergedData;
 
 function initLeafletMap() {
@@ -67,8 +66,7 @@ function initLeafletMap() {
     info.update = function (props) {
         this._div.innerHTML = '<h2>Interactive Country Reference Frequency Choropleth Map</h2>' +
             '<h3>Number of references: ' +  (props ?
-                '<b>' + props.name + '</b></h3>' + (props.name === selectedCountry ? selectedCountryReferences
-                    : props.frequency)
+                '<b>' + props.name + '</b></h3>' + numberWithCommas(props.frequency)
                 : '<i>none selected</i>');
 
     };
@@ -134,7 +132,12 @@ function getColor(d) {
 }
 
 function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    if (x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    else {
+        return ''
+    }
 }
 
 function style(feature) {
@@ -172,30 +175,33 @@ function httpGetAsync(url, callback) {
 function mergeCountryFreq(countries, geoJSON) {
     freqMax = Math.max();
     freqMin = Math.min();
-    mergedData = {
-        "type": "FeatureCollection",
-        "features": []
-    };
+    function transform(element, index) {
+        element.properties.frequency = 0;
+    }
+    geoJSON['features'].forEach(transform);
+    mergedData = geoJSON;
     $.each(countries, function (index, country) {
         if (country.name.search(new RegExp(country.name, "i")) != -1) {
-            var filter = geoJSON.features.filter(function (features) {
-                return features.properties.name.toLowerCase() === country.name.toLowerCase();
-            })[0];
-            if (filter) {
-                var geometry = filter.geometry;
-            } else {
-                // console.log("no geometry for: " + country.name)
+            for (var i = 0; i < mergedData.features.length; i++) {
+                if (mergedData.features[i].properties.name.toLowerCase() === country.name.toLowerCase()) {
+                    mergedData.features[i].properties.frequency = country.frequency;
+                    break;
+                }
             }
-            mergedData.features.push({
-                "type": "Feature",
-                "properties": {"name": country.name, "frequency": country.frequency},
-                "geometry": geometry
-            });
-            if (country.frequency > freqMax) {
-                freqMax = country.frequency;
+            //Ignore the selected country for legend calculation
+            if (country.frequency > freqMax && country.name.toLowerCase() !== selectedCountry) {
+                if(selectedCountry && country.name.toLowerCase() !== selectedCountry.toLowerCase()){
+                    freqMax = country.frequency;
+                } else if(!selectedCountry){
+                    freqMax = country.frequency;
+                }
             }
-            if (country.frequency < freqMin) {
-                freqMin = country.frequency;
+            if (country.frequency < freqMin && country.name.toLowerCase() !== selectedCountry) {
+                if(selectedCountry && country.name.toLowerCase() !== selectedCountry.toLowerCase()){
+                    freqMin = country.frequency;
+                } else if(!selectedCountry){
+                    freqMin = country.frequency;
+                }
             }
         }
     });
@@ -260,15 +266,17 @@ function removeCustomLayer() {
     }
 }
 function proceedCountryReferences(clickObject) {
+    removeCustomLayer();
+    //TODO selectedCountryReferences wann zurücksetzen?
+    //selectedCountryReferences = 0;
     var selection = $('input[name=references-radio]:checked').val();
     if (selectedCountry && selectedCountry.toLowerCase() === clickObject.target.feature.properties.name.toLowerCase()) {
         selectedCountry = '';
-        selectedCountryReferences = 0;
-        map.removeLayer(geojson);
-        removeCustomLayer();
         var beginYear = $('#slider-range').slider("values", 0);
         var endYear = $('#slider-range').slider("values", 1);
-        getFreqs(beginYear, endYear, map);
+        getFreqs(beginYear, endYear, function () {
+            addGeoJsonMap(mergedData, map);
+        });
     } else {
         selectedCountry = clickObject.target.feature.properties.name;
     }
@@ -309,18 +317,14 @@ function getCountryReferences(selectedCountry) {
 
         for (var j = 0; j < years; j++) {
             if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(country)) {
-                if (selectedCountry != country) {
-                    newFreq += countryReferences[beginYear + j][country][langIndex];
-                } else {
-                    selectedCountryReferences = countryReferences[beginYear + j][country][langIndex];
-                }
+                newFreq += countryReferences[beginYear + j][country][langIndex];
             }
         }
         mergedData.features[i].properties.frequency = newFreq;
-        if (newFreq > freqMax) {
+        if (newFreq > freqMax && country.toLowerCase() !== selectedCountry.toLowerCase()) {
             freqMax = newFreq;
         }
-        if (newFreq < freqMin) {
+        if (newFreq < freqMin && country.toLowerCase() !== selectedCountry.toLowerCase()) {
             freqMin = newFreq;
         }
     }
@@ -328,13 +332,13 @@ function getCountryReferences(selectedCountry) {
     calculateLegend();
     legend.addTo(map);
 
-    map.removeLayer(geojson);
-    if (selectedGeojson) {
-        map.removeLayer(selectedGeojson);
-    }
+    removeCustomLayer();
     geojson = L.geoJson(mergedData, {
         style: style,
-        onEachFeature: onEachFeature
+        onEachFeature: onEachFeature,
+        filter: function (feature, layer) {
+            return feature.properties.name.toLowerCase() !== country.toLowerCase();
+        }
     }).addTo(map);
 
     colorCountry(selectedCountry);
@@ -359,7 +363,7 @@ function getLanguageReferences(country) {
     }
     function transform(element, index) {
         var country_for_corpus = getCountry(countryReferences['languages'][index]);
-        if (country_for_corpus && country.toLowerCase() !== country_for_corpus.toLowerCase()) {
+        if (country_for_corpus) {
             references.push({'name': country_for_corpus, 'frequency': element});
         }
     }
@@ -370,10 +374,13 @@ function getLanguageReferences(country) {
     calculateLegend();
     legend.addTo(map);
 
-    map.removeLayer(geojson);
+    removeCustomLayer();
     geojson = L.geoJson(mergedData, {
         style: style,
-        onEachFeature: onEachFeature
+        onEachFeature: onEachFeature,
+        filter: function (feature, layer) {
+            return feature.properties.name.toLowerCase() !== country.toLowerCase();
+        }
     }).addTo(map);
     colorCountry(selectedCountry);
 }
@@ -411,11 +418,11 @@ function addGeoJsonMap(data, map) {
     }).addTo(map);
 
 }
-function getFreqs(beginYear, endYear, map) {
+function getFreqs(beginYear, endYear, extendedCallback) {
     httpGetAsync('/freqs?start=' + beginYear + '&end=' + endYear, function (response) {
         var countryFreq = JSON.parse(response);
         mergedData = mergeCountryFreq(countryFreq['countries'], countryData);
-        addGeoJsonMap(mergedData, map);
+        extendedCallback();
     });
 }
 
@@ -444,14 +451,18 @@ $(function () {
         create: function (event, ui) {
             handle.text( $( this ).slider( "value" ) );
             handle2.text( currYear );
-            getFreqs('1995', currYear, map);
+            getFreqs('1995', currYear, function () {
+                addGeoJsonMap(mergedData, map);
+            });
         },
         change: function (event, ui) {
             map.removeLayer(geojson);
             if (selectedGeojson) {
                 map.removeLayer(selectedGeojson);
             }
-            getFreqs(ui.values[0], ui.values[1], map);
+            getFreqs(ui.values[0], ui.values[1], function () {
+                addGeoJsonMap(mergedData, map);
+            });
         }
     });
     $("#year").val($("#slider-range").slider("values", 0) +
