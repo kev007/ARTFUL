@@ -23,6 +23,39 @@
 
 <body>
     <map id="mapid"></map>
+
+    <%--<debug>--%>
+        <%--[TEST] Language filter: <input type="text" id="langFilter" value="eng"/>--%>
+        <%--<input type="submit" value="Submit" onClick="getCountryReferences($('#langFilter').val())">--%>
+        <%--<input type="submit" value="[DEBUG]" onClick="console.log(countryReferences.languages), $('code:last').html('languages: ' + countryReferences.languages.toString())">--%>
+        <%--<br>--%>
+        <%--[TEST] Country filter: <input type="text" id="countryFilter" value="Germany"/>--%>
+        <%--<input type="submit" value="Submit" onClick="getLanguageReferences($('#countryFilter').val())">--%>
+        <%--<br>--%>
+        <%--<div>--%>
+            <%--<code>--%>
+                <%--[DEBUG]--%>
+            <%--</code>--%>
+        <%--</div>--%>
+
+        <%--<br>--%>
+        <%--<label>--%>
+            <%--<input type="radio" name="references-radio" value="ingoing" checked>--%>
+        <%--</label>Ingoing References--%>
+        <%--<label>--%>
+            <%--<input type="radio" name="references-radio" value="outgoing">--%>
+        <%--</label>Outgoing References--%>
+
+        <%--<br>--%>
+        <%--<div id="arrow" class="arrow" onClick="toggleReferences()">--%>
+            <%--<span id="arrowText" class="arrowText">Outgoing References</span>--%>
+        <%--</div>--%>
+    <%--</debug>--%>
+    <description>
+        <title>ARTFUL</title>
+        <h1>An inteRactive counTry reFerence freqUency choropLeth mapper</h1>
+    </description>
+
     <controls>
         <%--<b>${message}</b>--%>
         <%--<p>--%>
@@ -33,13 +66,16 @@
             <div id="custom-handle" class="ui-slider-handle"></div>
             <div id="custom-handle2" class="ui-slider-handle"></div>
         </div>
-        <br/>
-        <label>
-            <input type="radio" name="references-radio" value="ingoing" checked>
-        </label>Ingoing References
-        <label>
-            <input type="radio" name="references-radio" value="outgoing">
-        </label>Outgoing References
+
+        <br>
+        <div id="arrowContainer" style="display:table; height: 45px">
+            <span id="selectedCountry" class="countryText" style="display: none">COUNTRY 1</span>
+            <div id="arrow" class="arrow" onClick="toggleReferences()" style="display: none">
+               <span id="arrowText" class="arrowText">Outgoing References</span>
+            </div>
+            <span id="hoverCountry" class="countryText">Select a Country</span>
+        </div>
+        <span id="hoverFreq" class="countryText"></span>
     </controls>
 
     <script>

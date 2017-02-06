@@ -3,7 +3,8 @@ var selectedGeojson;
 var map;
 var info;
 var legend;
-var selectedCountry;
+var selectedCountry = "";
+var ingoingReferences = false;
 var mergedData;
 
 function initLeafletMap() {
@@ -64,11 +65,32 @@ function initLeafletMap() {
 
     // method that we will use to update the control based on feature properties passed
     info.update = function (props) {
-        this._div.innerHTML = '<h2>Interactive Country Reference Frequency Choropleth Map</h2>' +
-            '<h3>Number of references: ' +  (props ?
-                '<b>' + props.name + '</b></h3>' + numberWithCommas(props.frequency)
-                : '<i>none selected</i>');
+        if (typeof props != "undefined") {
+            document.getElementById('selectedCountry').textContent = selectedCountry;
+            document.getElementById('hoverCountry').textContent = props.name;
+            document.getElementById('hoverFreq').textContent = numberWithCommas(props.frequency);
 
+            document.getElementById('hoverCountry').style.display='table-cell';
+            document.getElementById('hoverFreq').style.display='table-cell';
+        } else {
+            document.getElementById('selectedCountry').textContent = selectedCountry;
+            document.getElementById('hoverCountry').textContent = "";
+            document.getElementById('hoverFreq').textContent = "";
+
+            document.getElementById('hoverCountry').style.display='none';
+            document.getElementById('hoverFreq').style.display='none';
+        }
+        if (selectedCountry != "") {
+            document.getElementById('selectedCountry').style.display='table-cell';
+            document.getElementById('arrow').style.display='inline-block';
+        } else {
+            document.getElementById('selectedCountry').style.display='none';
+            document.getElementById('arrow').style.display='none';
+        }
+
+        // this._div.innerHTML = '' +
+        //     '<h2>Interactive Country Reference Frequency Choropleth Map</h2>' +
+        //     '<h3>Number of references: ' +  (props ? '<b>' + props.name + '</b></h3>' + numberWithCommas(props.frequency) : '<i>none selected</i>');
     };
     info.addTo(map);
 }
@@ -265,11 +287,11 @@ function removeCustomLayer() {
         map.removeLayer(selectedGeojson);
     }
 }
+
 function proceedCountryReferences(clickObject) {
     removeCustomLayer();
     //TODO selectedCountryReferences wann zurücksetzen?
     //selectedCountryReferences = 0;
-    var selection = $('input[name=references-radio]:checked').val();
     if (selectedCountry && selectedCountry.toLowerCase() === clickObject.target.feature.properties.name.toLowerCase()) {
         selectedCountry = '';
         var beginYear = $('#slider-range').slider("values", 0);
@@ -280,7 +302,34 @@ function proceedCountryReferences(clickObject) {
     } else {
         selectedCountry = clickObject.target.feature.properties.name;
     }
-    return selection == 'ingoing' ? getCountryReferences(selectedCountry) : getLanguageReferences(selectedCountry)
+    fillCountryReferences(selectedCountry);
+}
+
+function fillCountryReferences(name) {
+    if (ingoingReferences) {
+        getLanguageReferences(name)
+    } else {
+        getCountryReferences(name)
+    }
+}
+
+
+function toggleReferences() {
+    ingoingReferences = !ingoingReferences;
+    var arrow = document.getElementById('arrow');
+    var arrowText = document.getElementById('arrowText');
+
+    if(!ingoingReferences){
+        arrow.className = 'arrow';
+        arrowText.className = 'arrowText';
+        arrowText.textContent = "Outgoing References";
+    } else {
+        arrow.className = 'arrow left';
+        arrowText.className = 'arrowText left';
+        arrowText.textContent = "Ingoing References";
+    }
+
+    fillCountryReferences(selectedCountry);
 }
 
 function getCorpus(country) {
