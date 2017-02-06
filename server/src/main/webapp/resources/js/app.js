@@ -313,7 +313,6 @@ function fillCountryReferences(name) {
     }
 }
 
-
 function toggleReferences() {
     ingoingReferences = !ingoingReferences;
     var arrow = document.getElementById('arrow');
@@ -382,14 +381,7 @@ function getCountryReferences(selectedCountry) {
     legend.addTo(map);
 
     removeCustomLayer();
-    geojson = L.geoJson(mergedData, {
-        style: style,
-        onEachFeature: onEachFeature,
-        filter: function (feature, layer) {
-            return feature.properties.name.toLowerCase() !== country.toLowerCase();
-        }
-    }).addTo(map);
-
+    addGeoJsonMap(mergedData, map, selectedCountry);
     colorCountry(selectedCountry);
 }
 
@@ -424,13 +416,7 @@ function getLanguageReferences(country) {
     legend.addTo(map);
 
     removeCustomLayer();
-    geojson = L.geoJson(mergedData, {
-        style: style,
-        onEachFeature: onEachFeature,
-        filter: function (feature, layer) {
-            return feature.properties.name.toLowerCase() !== country.toLowerCase();
-        }
-    }).addTo(map);
+    addGeoJsonMap(mergedData, map, country);
     colorCountry(selectedCountry);
 }
 
@@ -444,9 +430,9 @@ function getTopTen(e) {
         for(var i = 0; i < topTen.length; i++){
         	var rec = topTen[i];
         	content += "<tr> <td> " + rec.name + "</td> <td>" + rec.frequency + "</td> </tr>";
-        } 
+        }
         content += "</table>";
-        
+
         var popup = L.popup()
         	.setLatLng(e.latlng)
         	.setContent(content)
@@ -459,14 +445,21 @@ function zoomToFeature(e) {
 	// console.log(e.target.feature.properties.name);
 }
 
-function addGeoJsonMap(data, map) {
+function addGeoJsonMap(data, map, country) {
+    if (!country) {
+        country  = "";
+    }
+
     removeCustomLayer();
     geojson = L.geoJson(data, {
         style: style,
-        onEachFeature: onEachFeature
+        onEachFeature: onEachFeature,
+        filter: function (feature, layer) {
+            return feature.properties.name.toLowerCase() !== country.toLowerCase();
+        }
     }).addTo(map);
-
 }
+
 function getFreqs(beginYear, endYear, extendedCallback) {
     httpGetAsync('/freqs?start=' + beginYear + '&end=' + endYear, function (response) {
         var countryFreq = JSON.parse(response);
