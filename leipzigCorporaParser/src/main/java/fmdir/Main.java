@@ -81,7 +81,7 @@ public class Main {
 
                 ArrayList<Translation> translations = allTranslations.get(tempLang);
 
-                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + language + ": " + wordFreq.size() + " words imported in \t\t " + (float)(System.currentTimeMillis()-parseStart)/1000 + " seconds" + ANSI_RESET);
+                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + language + " (using: " + tempLang +  "): " + wordFreq.size() + " words imported in \t\t " + (float)(System.currentTimeMillis()-parseStart)/1000 + " seconds" + ANSI_RESET);
 
                 int corporaSize;
                 int sizeRank = FileTools.getCorporaSize(path.toString());
