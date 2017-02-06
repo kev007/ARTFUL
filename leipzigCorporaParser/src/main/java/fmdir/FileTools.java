@@ -292,7 +292,7 @@ public class FileTools {
         }
     }
 
-    private static int getCorporaSize(String path) {
+    public static int getCorporaSize(String path) {
         String[] segments = path.split("_");
         String size = segments[segments.length-1];
 

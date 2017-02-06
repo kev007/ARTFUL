@@ -30,7 +30,7 @@ public class DatabaseTools {
      * @param year
      * @param language
      */
-    public static void fillDatabase(ArrayList<Translation> translations, HashMap<String, Integer> wordFreq, String year, String language) {
+    public static void fillDatabase(ArrayList<Translation> translations, HashMap<String, Integer> wordFreq, String year, String language, int corporaSize) {
         try {
             Class.forName(driverName).newInstance();
             Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
@@ -42,7 +42,7 @@ public class DatabaseTools {
                 PreparedStatement insertTranslation = connection.prepareStatement("" +
                         "insert into translation (id, w_id, word, language, located_in, category) values (?1, ?2, ?3, ?4, ?5, ?6);");
                 PreparedStatement insertWord = connection.prepareStatement("" +
-                        "insert into freq (id, translation_id, corpus, freq, year) values (?1, ?2, ?3, ?4, ?5);");
+                        "insert into freq (id, translation_id, corpus, freq, year, corporaSize) values (?1, ?2, ?3, ?4, ?5, ?6);");
 
                 PreparedStatement getTranslation = connection.prepareStatement("SELECT id FROM translation WHERE word = ?1 and language = ?2");
 
@@ -83,6 +83,7 @@ public class DatabaseTools {
                         insertWord.setString(3, language);
                         insertWord.setInt(4, wordFreq.get(word));
                         insertWord.setInt(5, Integer.parseInt(year));
+                        insertWord.setInt(6, corporaSize);
                         insertWord.execute();
                     }
                 }

@@ -83,7 +83,18 @@ public class Main {
 
                 System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + language + ": " + wordFreq.size() + " words imported in \t\t " + (float)(System.currentTimeMillis()-parseStart)/1000 + " seconds" + ANSI_RESET);
 
-                DatabaseTools.fillDatabase(translations, wordFreq, year, language);
+                int corporaSize = 0;
+                int sizeRank = FileTools.getCorporaSize(path.toString());
+                switch (sizeRank) {
+                    case 5: corporaSize = 10000; break;
+                    case 10: corporaSize = 30000; break;
+                    case 15: corporaSize = 100000; break;
+                    case 20: corporaSize = 300000; break;
+                    case 25: corporaSize = 1000000; break;
+                    case 30: corporaSize = 3000000; break;
+                }
+
+                DatabaseTools.fillDatabase(translations, wordFreq, year, language, corporaSize);
             } else {
 //                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
             }
