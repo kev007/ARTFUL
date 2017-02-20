@@ -29,6 +29,10 @@ Start the server with:
 cd server
 mvn clean spring-boot:run
 ```
+**Note**: You have to specify the database path via *JAVA_OPTS*: 
+```
+-Dtranslation_database=/path/to/database/translations.sqlite
+```
 
 ## Credits
 
