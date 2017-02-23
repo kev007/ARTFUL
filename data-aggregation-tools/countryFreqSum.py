@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-import sqlite3
 import configparser
+import sqlite3
 
 config = configparser.ConfigParser()
 config.read('config.conf')
@@ -20,12 +20,12 @@ deleteRecords = "DELETE FROM `country_freq`"
 cursor.execute(deleteRecords)
 connection.commit()
 for locatedIn in locatedIns:
+    print("Inserting frequencies for " + locatedIn + "...")
     for year in years:
-        print("Inserting frequencies for " + locatedIn + "...")
         insert = "INSERT INTO `country_freq`(country, freq, year)" \
                  " SELECT located_in AS country, sum(freq) AS freq, f.year" \
-                 " FROM freq f, translation t WHERE t.located_in = '{}' AND f.year = {};".format(locatedIn, year)
-        print(insert)
+                 " FROM freq f, translation t" \
+                 " WHERE f.translation_id = t.id AND t.located_in = '{}' AND f.year = {};".format(locatedIn, year)
         cursor.execute(insert)
         connection.commit()
 

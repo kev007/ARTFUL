@@ -6,6 +6,9 @@ var legend;
 var selectedCountry = "";
 var ingoingReferences = false;
 var mergedData;
+var countryFreqsOut = {};
+var countryFreqsIn = {};
+var selectedCountryFreqTotal;
 
 function initLeafletMap() {
     map = L.map('mapid').setView([51.505, -0.09], 3);
@@ -65,10 +68,19 @@ function initLeafletMap() {
 
     // method that we will use to update the control based on feature properties passed
     info.update = function (props) {
-        if (typeof props != "undefined") {
+        if (props) {
             document.getElementById('selectedCountry').textContent = selectedCountry;
             document.getElementById('hoverCountry').textContent = props.name;
-            document.getElementById('hoverFreq').textContent = numberWithCommas(props.frequency);
+            var currCountryFreq;
+            if (ingoingReferences) {
+                currCountryFreq = countryFreqsIn[props.name.toLowerCase()];
+                console.log(currCountryFreq);
+            } else {
+                currCountryFreq = countryFreqsOut[props.name];
+            }
+            document.getElementById('hoverFreq').innerHTML = currCountryFreq ? numberWithCommas(props.frequency)
+                + " (" + ((currCountryFreq / selectedCountryFreqTotal) * 100).toFixed(2) + "&#37;) "
+                : numberWithCommas(props.frequency);
 
             document.getElementById('hoverCountry').style.display='table-cell';
             document.getElementById('hoverFreq').style.display='table-cell';
@@ -349,8 +361,10 @@ function getGeoJson(country) {
 }
 
 function getCountryReferences(selectedCountry) {
+    countryFreqsOut = {};
     freqMax = Math.max();
     freqMin = Math.min();
+    selectedCountryFreqTotal = 0;
 
     var beginYear = $('#slider-range').slider("values",0);
     var endYear = $('#slider-range').slider("values",1);
@@ -360,12 +374,17 @@ function getCountryReferences(selectedCountry) {
     var langIndex = countryReferences.languages.indexOf(corpus);
 
     for (var i = 0; i < mergedData.features.length; i++) {
+        var countryReferencesSum = 0;
         var country = mergedData.features[i].properties.name;
         var newFreq = 0;
 
         for (var j = 0; j < years; j++) {
             if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(country)) {
-                newFreq += countryReferences[beginYear + j][country][langIndex];
+                var currCountryYearReferences = countryReferences[beginYear + j][country];
+                newFreq += currCountryYearReferences[langIndex];
+                countryReferencesSum += currCountryYearReferences.reduce(function (a, b) {
+                    return a + b;
+                }, 0);
             }
         }
         mergedData.features[i].properties.frequency = newFreq;
@@ -375,6 +394,8 @@ function getCountryReferences(selectedCountry) {
         if (newFreq < freqMin && country.toLowerCase() !== selectedCountry.toLowerCase()) {
             freqMin = newFreq;
         }
+        countryFreqsOut[country] = newFreq;
+        selectedCountryFreqTotal += newFreq;
     }
 
     calculateLegend();
@@ -386,6 +407,7 @@ function getCountryReferences(selectedCountry) {
 }
 
 function getLanguageReferences(country) {
+    selectedCountryFreqTotal = 0;
     var beginYear = $('#slider-range').slider("values",0);
     var endYear = $('#slider-range').slider("values",1);
     var years = endYear - beginYear;
@@ -406,6 +428,8 @@ function getLanguageReferences(country) {
         var country_for_corpus = getCountry(countryReferences['languages'][index]);
         if (country_for_corpus) {
             references.push({'name': country_for_corpus, 'frequency': element});
+            selectedCountryFreqTotal += element;
+            countryFreqsIn[country_for_corpus] = element;
         }
     }
 
