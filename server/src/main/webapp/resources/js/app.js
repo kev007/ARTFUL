@@ -485,7 +485,7 @@ function addGeoJsonMap(data, map, country) {
 }
 
 function getFreqs(beginYear, endYear, extendedCallback) {
-    httpGetAsync('/freqs?start=' + beginYear + '&end=' + endYear, function (response) {
+    httpGetAsync('freqs?start=' + beginYear + '&end=' + endYear, function (response) {
         var countryFreq = JSON.parse(response);
         mergedData = mergeCountryFreq(countryFreq['countries'], countryData);
         extendedCallback();
@@ -493,7 +493,7 @@ function getFreqs(beginYear, endYear, extendedCallback) {
 }
 
 function getTopTenMentioning(country, beginYear, endYear) {
-	httpGetAsync('/topTen?country=' + country + '&start=' + beginYear + '&end=' + endYear, function (response) {
+	httpGetAsync('topTen?country=' + country + '&start=' + beginYear + '&end=' + endYear, function (response) {
         var countryFreq = JSON.parse(response);
         //console.log(countryFreq);
     });
