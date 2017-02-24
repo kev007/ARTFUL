@@ -16,23 +16,37 @@ TODO: Write goals
 TODO: Describe the installation process
 
 ```
-sudo pip3 install -r countryFreq/requirements.txt 
+sudo pip3 install -r data-aggregation-tools/requirements.txt 
 ```
 
 ## Datasource
-The GeoJSON Data to colorize the countries is from <https://geojson-maps.kyd.com.au/>.
+- GeoJSON Data to colorize the countries is from <https://geojson-maps.kyd.com.au/>
+- Word frequencies are from <http://corpora.uni-leipzig.de/de>
 
 ## Usage
+**Note**: You have to specify the database path via *JAVA_OPTS*: 
+```
+-Dtranslation_database=/path/to/database/translations.sqlite
+```
 
+### Development
 Start the server with:
 ```
 cd server
 mvn clean spring-boot:run
 ```
-**Note**: You have to specify the database path via *JAVA_OPTS*: 
+
+
+### Deployment
+
+Tested with Tomcat 7
+
 ```
--Dtranslation_database=/path/to/database/translations.sqlite
+mvn package
+cp artful.war /usr/share/tomcat/webapps
 ```
+
+**Note**: The tomcat path may be different. 
 
 ## Credits
 
