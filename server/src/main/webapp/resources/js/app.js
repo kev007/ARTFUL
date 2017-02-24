@@ -8,7 +8,6 @@ var ingoingReferences = false;
 var mergedData;
 var countryFreqsOut = {};
 var countryFreqsIn = {};
-var selectedCountryFreqTotal;
 
 function initLeafletMap() {
     map = L.map('mapid').setView([51.505, -0.09], 3);
@@ -72,14 +71,21 @@ function initLeafletMap() {
             document.getElementById('selectedCountry').textContent = selectedCountry;
             document.getElementById('hoverCountry').textContent = props.name;
             var currCountryFreq;
+            var selectedReferences;
             if (ingoingReferences) {
+                selectedReferences = countryFreqsIn;
                 currCountryFreq = countryFreqsIn[props.name.toLowerCase()];
-                console.log(currCountryFreq);
             } else {
+                selectedReferences = countryFreqsOut;
                 currCountryFreq = countryFreqsOut[props.name];
             }
+            var totalCountryReferences = 0;
+            for (var key in selectedReferences) {
+                totalCountryReferences += selectedReferences[key];
+            }
             document.getElementById('hoverFreq').innerHTML = currCountryFreq ? numberWithCommas(props.frequency)
-                + " (" + ((currCountryFreq / selectedCountryFreqTotal) * 100).toFixed(2) + "&#37;) "
+                + " (" + ((currCountryFreq / totalCountryReferences) * 100)
+                    .toFixed(2) + "&#37;) "
                 : numberWithCommas(props.frequency);
 
             document.getElementById('hoverCountry').style.display='table-cell';
@@ -364,7 +370,6 @@ function getCountryReferences(selectedCountry) {
     countryFreqsOut = {};
     freqMax = Math.max();
     freqMin = Math.min();
-    selectedCountryFreqTotal = 0;
 
     var beginYear = $('#slider-range').slider("values",0);
     var endYear = $('#slider-range').slider("values",1);
@@ -395,7 +400,6 @@ function getCountryReferences(selectedCountry) {
             freqMin = newFreq;
         }
         countryFreqsOut[country] = newFreq;
-        selectedCountryFreqTotal += newFreq;
     }
 
     calculateLegend();
@@ -407,7 +411,7 @@ function getCountryReferences(selectedCountry) {
 }
 
 function getLanguageReferences(country) {
-    selectedCountryFreqTotal = 0;
+    countryFreqsIn = {};
     var beginYear = $('#slider-range').slider("values",0);
     var endYear = $('#slider-range').slider("values",1);
     var years = endYear - beginYear;
@@ -428,7 +432,6 @@ function getLanguageReferences(country) {
         var country_for_corpus = getCountry(countryReferences['languages'][index]);
         if (country_for_corpus) {
             references.push({'name': country_for_corpus, 'frequency': element});
-            selectedCountryFreqTotal += element;
             countryFreqsIn[country_for_corpus] = element;
         }
     }
