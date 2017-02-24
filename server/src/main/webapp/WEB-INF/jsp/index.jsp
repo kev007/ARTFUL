@@ -53,7 +53,7 @@
     <%--</debug>--%>
     <description>
         <title>ARTFUL</title>
-        <h1>An inteRactive counTry reFerence freqUency choropLeth mapper</h1>
+        <h1><span style="color: #d03131">A</span>n inte<span style="color: #d03131">r</span>active coun<span style="color: #d03131">t</span>ry re<span style="color: #d03131">f</span>erence freq<span style="color: #d03131">u</span>ency chorop<span style="color: #d03131">l</span>eth mapper</h1>
     </description>
 
     <controls>
