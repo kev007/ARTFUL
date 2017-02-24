@@ -107,7 +107,6 @@ function initLeafletMap() {
     info.addTo(map);
 }
 
-//TODO: overlapping legend levels?
 var freqMax = Math.min();
 var freqMin = Math.max();
 var legend1 = 100000000;
@@ -123,8 +122,6 @@ var legend10 = 60000000000;
 var legendCount = 11;
 
 function calculateLegend() {
-    //TODO: Algorithm stuff
-
     var range = freqMax - freqMin;
     var step = range / legendCount;
     var significantFigures = 2;
@@ -302,8 +299,6 @@ function removeCustomLayer() {
 
 function proceedCountryReferences(clickObject) {
     removeCustomLayer();
-    //TODO selectedCountryReferences wann zurücksetzen?
-    //selectedCountryReferences = 0;
     if (selectedCountry && selectedCountry.toLowerCase() === clickObject.target.feature.properties.name.toLowerCase()) {
         selectedCountry = '';
         var beginYear = $('#slider-range').slider("values", 0);
@@ -318,11 +313,25 @@ function proceedCountryReferences(clickObject) {
 }
 
 function fillCountryReferences(name) {
-    if (ingoingReferences) {
-        getLanguageReferences(name)
+    if (name == '') {
+        console.log('No country selected')
     } else {
-        getCountryReferences(name)
+        console.log(name);
+        if (ingoingReferences) {
+            getLanguageReferences(name)
+            console.log('1');
+        } else {
+            getCountryReferences(name)
+            console.log('2');
+        }
     }
+    calculateLegend();
+    legend.addTo(map);
+
+    removeCustomLayer();
+    addGeoJsonMap(mergedData, map, selectedCountry);
+    colorCountry(selectedCountry);
+    info.update();
 }
 
 function toggleReferences() {
@@ -397,16 +406,9 @@ function getCountryReferences(selectedCountry) {
         countryFreqsOut[country] = newFreq;
         selectedCountryFreqTotal += newFreq;
     }
-
-    calculateLegend();
-    legend.addTo(map);
-
-    removeCustomLayer();
-    addGeoJsonMap(mergedData, map, selectedCountry);
-    colorCountry(selectedCountry);
 }
 
-function getLanguageReferences(country) {
+function getLanguageReferences(selectedCountry) {
     selectedCountryFreqTotal = 0;
     var beginYear = $('#slider-range').slider("values",0);
     var endYear = $('#slider-range').slider("values",1);
@@ -418,9 +420,9 @@ function getLanguageReferences(country) {
     var references = [];
 
     for (var j = 0; j < years; j++) {
-        if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(country)) {
-            for (var i = 0; i < countryReferences[beginYear + j][country].length; i++) {
-                data[i] += countryReferences[beginYear + j][country][i];
+        if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(selectedCountry)) {
+            for (var i = 0; i < countryReferences[beginYear + j][selectedCountry].length; i++) {
+                data[i] += countryReferences[beginYear + j][selectedCountry][i];
             }
         }
     }
@@ -435,13 +437,6 @@ function getLanguageReferences(country) {
 
     data.forEach(transform);
     mergedData = mergeCountryFreq(references, countryData);
-
-    calculateLegend();
-    legend.addTo(map);
-
-    removeCustomLayer();
-    addGeoJsonMap(mergedData, map, country);
-    colorCountry(selectedCountry);
 }
 
 function getTopTen(e) {
@@ -529,6 +524,7 @@ $(function () {
             getFreqs(ui.values[0], ui.values[1], function () {
                 addGeoJsonMap(mergedData, map);
             });
+            fillCountryReferences(selectedCountry);
         }
     });
     $("#year").val($("#slider-range").slider("values", 0) +
