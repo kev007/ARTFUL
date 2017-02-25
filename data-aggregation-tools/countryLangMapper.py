@@ -8,7 +8,7 @@ import sqlite3
 config = configparser.ConfigParser()
 config.read('config.conf')
 
-connection = sqlite3.connect(config['database']['file'])
+connection = sqlite3.connect(config.get('database', 'file'))
 cursor = connection.cursor()
 
 corporaQuery = "SELECT DISTINCT corpus FROM freq;"
@@ -37,8 +37,8 @@ for corpus in corpora:
 inv_mapping = {v: k for k, v in mappings.items()}
 print(inv_mapping)
 
-with open(config['server']['language-country-mapping'], "w+") as result_file:
-    result_file.write("var language_country_mapping = " + json.dumps(mappings))
+with open(config.get('server', 'language-country-mapping'), "w+") as result_file:
+    result_file.write("var language_country_mapping = " + json.dumps(mappings) + ";")
 
-with open(config['server']['country-language-mapping'], "w+") as result_file:
-    result_file.write("var country_language_mapping = " + json.dumps(inv_mapping))
+with open(config.get('server', 'country-language-mapping'), "w+") as result_file:
+    result_file.write("var country_language_mapping = " + json.dumps(inv_mapping) + ";")

@@ -22,7 +22,7 @@ def get_years(c):
 
 config = configparser.ConfigParser()
 config.read('config.conf')
-connection = sqlite3.connect(config['database']['file'])
+connection = sqlite3.connect(config.get('database', 'file'))
 cursor = connection.cursor()
 
 locatedIns = get_located_ins(cursor)
@@ -75,7 +75,7 @@ for entry in uncollected_year_country_list:
     for key, value in entry.items():
         if str(key) in countries_collected_by_year.keys():
             for country, values in value.items():
-                countries_collected_by_year[str(key)][country] = values
+                countries_collected_by_year[str(key)][country]['frequencies'] = values
         else:
             countries_collected_by_year[str(key)] = value
 
@@ -92,5 +92,5 @@ class NumPyEncoder(json.JSONEncoder):
             return super(NumPyEncoder, self).default(obj)
 
 
-with open(config['server']['country-references-file'], "w+") as result_file:
-    result_file.write("var countryReferences = " + json.dumps(countries_collected_by_year, cls=NumPyEncoder))
+with open(config.get('server', 'country-references-file'), "w+") as result_file:
+    result_file.write("var countryReferences = " + json.dumps(countries_collected_by_year, cls=NumPyEncoder) + ";")
