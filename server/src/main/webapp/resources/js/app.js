@@ -340,6 +340,18 @@ function fillCountryReferences(name) {
     info.update();
 }
 
+function calcWeightedFrequencies () {
+    //TODO: calculation
+
+    mergedData.features[i].properties.corporaSize = newSize;
+    if (newSize > freqMax && country.toLowerCase() !== selectedCountry.toLowerCase()) {
+        sizeMax = newSize;
+    }
+    if (newSize < freqMin && country.toLowerCase() !== selectedCountry.toLowerCase()) {
+        sizeMin = newSize;
+    }
+}
+
 function toggleReferences() {
     ingoingReferences = !ingoingReferences;
     var arrow = document.getElementById('arrow');
@@ -527,7 +539,7 @@ $(function () {
             getFreqs(ui.values[0], ui.values[1], function () {
                 addGeoJsonMap(mergedData, map);
             });
-            fillCountryReferences(selectedCountry);
+            // fillCountryReferences(selectedCountry);
         }
     });
     $("#year").val($("#slider-range").slider("values", 0) +
