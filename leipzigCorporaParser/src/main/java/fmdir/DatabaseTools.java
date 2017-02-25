@@ -201,6 +201,19 @@ public class DatabaseTools {
         }
     }
 
+    public static void resetIncrementSequence () {
+        try {
+            Class.forName(driverName).newInstance();
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
+
+            Statement statement  = connection.createStatement();
+            statement.execute("update sqlite_sequence set seq = 0 where name = 'corpora'");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     /**
      * OLD: Fill the database
      * @param wordFreq

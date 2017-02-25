@@ -40,6 +40,7 @@ public class Main {
         DatabaseTools.deleteAllRows("freq");
         DatabaseTools.deleteAllRows("corpora");
         DatabaseTools.deleteAllRows("translation");
+        DatabaseTools.resetIncrementSequence();
         DatabaseTools.compactDatabase();
 
         //Import translations CSV
