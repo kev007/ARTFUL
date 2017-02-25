@@ -49,7 +49,6 @@ public class FreqController {
     @RequestMapping(value = "/freqs", method = RequestMethod.GET)
     public String getFreqs(@RequestParam(value = "start", required = false, defaultValue = "1900") Integer start,
                            @RequestParam(value = "end", required = false, defaultValue = "2100") Integer end) {
-        //TODO get real frequency data from database
         JSONObject response = new JSONObject();
         JSONArray countries = new JSONArray();
         response.put("countries", countries);
@@ -60,6 +59,7 @@ public class FreqController {
             JSONObject currCountry = new JSONObject();
             currCountry.put("name", (String) record[0]);
             currCountry.put("frequency", (Long) record[1]);
+            currCountry.put("avgCorporaSize", (Integer) record[2]);
             countries.put(currCountry);
         });
         return String.valueOf(response);
