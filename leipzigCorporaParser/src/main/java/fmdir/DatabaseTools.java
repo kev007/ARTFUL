@@ -329,15 +329,15 @@ public class DatabaseTools {
         }
     }
 
-    public static void deleteAllRows(String dbName) {
-        System.out.println("Deleting table contents: " + dbName);
+    public static void deleteAllRows(String tableName) {
+        System.out.println("Deleting table contents: " + tableName);
         try {
             Class.forName(driverName).newInstance();
             Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
 
             Statement s = connection.createStatement();
 
-            String query = "DELETE FROM " + dbName;
+            String query = "DELETE FROM " + tableName;
             int deletedRows=s.executeUpdate(query);
             if(deletedRows>0){
                 System.out.println("Deleted all rows in the table successfully...");
