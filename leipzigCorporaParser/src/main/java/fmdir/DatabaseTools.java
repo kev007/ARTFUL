@@ -35,9 +35,9 @@ public class DatabaseTools {
     public static void fillDatabase(ArrayList<Translation> translations, HashMap<String, Integer> wordFreq, String year, String language, Path path) {
         try {
             Class.forName(driverName).newInstance();
-            Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
+//            Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
 
-//            Connection connection = newInMemoryDatabase();
+            Connection connection = newInMemoryDatabase();
 
             connection.setAutoCommit(true);
 
@@ -123,8 +123,8 @@ public class DatabaseTools {
                 System.out.println(ANSI_YELLOW + "ERROR. Rolling back changes." + ANSI_RESET);
                 connection.rollback();
             } finally {
-//                saveDatabaseToFile(connection);
-                connection.close();
+                saveDatabaseToFile(connection);
+//                connection.close();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -161,7 +161,7 @@ public class DatabaseTools {
 
         File dbFile = new File(Main.prop.getProperty("dbPath"));
         if (dbFile.exists()) {
-            System.out.println("File exists: " + Main.prop.getProperty("dbPath"));
+//            System.out.println("File exists: " + Main.prop.getProperty("dbPath"));
             statement.executeUpdate("restore from '" + dbFile.getAbsolutePath() + "'");
             statement.close();
         }
@@ -179,7 +179,7 @@ public class DatabaseTools {
 
         File dbFile = new File(Main.prop.getProperty("dbPath"));
         if (dbFile.exists()) {
-            System.out.println("File exists: " + Main.prop.getProperty("dbPath"));
+//            System.out.println("File exists: " + Main.prop.getProperty("dbPath"));
             statement.executeUpdate("backup to '" + dbFile.getAbsolutePath() + "'");
             statement.close();
         }
@@ -187,15 +187,18 @@ public class DatabaseTools {
 
     /**
      * Runs the SQLite VACUUM command on the database file for compaction
-     * @throws Exception
      */
-    public static void compactDatabase () throws Exception {
-        Class.forName(driverName).newInstance();
-        Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
+    public static void compactDatabase () {
+        try {
+            Class.forName(driverName).newInstance();
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
 
-        Statement statement  = connection.createStatement();
-        statement.execute("PRAGMA auto_vacuum = 1");
-        statement.execute("VACUUM");
+            Statement statement  = connection.createStatement();
+            statement.execute("PRAGMA auto_vacuum = 1");
+            statement.execute("VACUUM");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**

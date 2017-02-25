@@ -40,6 +40,7 @@ public class Main {
         DatabaseTools.deleteAllRows("freq");
         DatabaseTools.deleteAllRows("corpora");
         DatabaseTools.deleteAllRows("translation");
+        DatabaseTools.compactDatabase();
 
         //Import translations CSV
         ArrayList<Path> allTranslationPaths = FileTools.getAllPathsFrom(prop.getProperty("translationPath"));
