@@ -26,8 +26,10 @@ for corpus in corpora:
     results = cursor.fetchall()
     curr_corpus = {}
     for result in results:
-        curr_corpus[result[0]] = result[1]
-    avgCorporaSizesPerYears["corpora"][corpus] = curr_corpus
+        curr_corpus[result[0]] = int(result[1])
+    if corpus not in avgCorporaSizesPerYears["corpora"]:
+        avgCorporaSizesPerYears["corpora"][corpus] = {}
+    avgCorporaSizesPerYears["corpora"][corpus]['average corpus size'] = curr_corpus
 
-with open(config.get('server', 'freq-dimensions'), "w+") as result_file:
-    result_file.write("var freqDimensions = " + json.dumps(avgCorporaSizesPerYears) + ";")
+with open(config.get('server', 'average-corpus-size-file'), "w+") as result_file:
+    result_file.write("var avgCorpusSizes = " + json.dumps(avgCorporaSizesPerYears) + ";")

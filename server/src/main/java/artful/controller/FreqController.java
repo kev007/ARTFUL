@@ -55,13 +55,19 @@ public class FreqController {
 
         List<Object[]> freqs = repository.findAllByYearBetween(start, end);
 
+        final Integer[] maxCorporaSize = {0};
         freqs.forEach((record) -> {
             JSONObject currCountry = new JSONObject();
             currCountry.put("name", (String) record[0]);
             currCountry.put("frequency", (Long) record[1]);
-            currCountry.put("avgCorporaSize", (Integer) record[2]);
+            Integer currCorporaSize = (Integer) record[2];
+            currCountry.put("avgCorporaSize", currCorporaSize);
             countries.put(currCountry);
+            if(currCorporaSize > maxCorporaSize[0]){
+                maxCorporaSize[0] = currCorporaSize;
+            }
         });
+        response.put("max corpora size", maxCorporaSize[0]);
         return String.valueOf(response);
     }
 }

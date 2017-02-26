@@ -40,52 +40,6 @@ for i in years:
     year_dataframe_pair = [i, DataFrame(0, index=locatedIns, columns=corpora)]
     dataframes.append(year_dataframe_pair)
 
-query = "SELECT sum(f.freq) total_freq, year FROM freq f, translation t WHERE f.translation_id = t.id " \
-        "AND t.located_in = '{}' AND f.corpus = '{}' GROUP BY t.located_in, year, corpus;"
-for locatedIn in locatedIns:
-    print("Generating reference values for " + locatedIn)
-    for corpus in corpora:
-        cursor.execute(query.format(locatedIn, corpus))
-        connection.commit()
-        result = cursor.fetchall()
-        for entry in result:
-            value = entry[0]
-            year = entry[1]
-            for dataframe in dataframes:
-                if dataframe[0] == year:
-                    dataframe[1].set_value(locatedIn, corpus, value)
-    # if locatedIn == 'South Korea':
-    #    break
-
-connection.close()
-columns = dataframes[0][1].axes[1].tolist()
-uncollected_year_country_list = []
-
-for i in range(len(dataframes)):
-    # For every year (dataframe/matrix)
-    df = dataframes[i]
-    rows = df[1].axes[0].tolist()
-    curr_year = df[0]
-    for index, row in df[1].iterrows():
-        # For every country (row)
-        country = index
-        values = list(row.values)
-        uncollected_year_country_list.append({str(curr_year): {country: values}})
-
-# Add the column headings (corpora) to the json object
-countries_collected_by_year = {"languages": columns}
-
-# Collect all countries by year
-for entry in uncollected_year_country_list:
-    for key, value in entry.items():
-        if str(key) in countries_collected_by_year.keys():
-            for country, values in value.items():
-                if country not in countries_collected_by_year[str(key)]:
-                    countries_collected_by_year[str(key)][country] = {}
-                countries_collected_by_year[str(key)][country]['frequencies'] = values
-        else:
-            countries_collected_by_year[str(key)] = value
-
 # Calculate the average corpora size for every corpus for every year
 avgCorporaSizesPerYears = {"corpora": {}}
 max_corpora_size = 0
@@ -114,26 +68,47 @@ for year in years:
         else:
             print(str(year) + "; " + corpus + " not found")
 
-# Normalize frequency entries based on biggest corpus size
-normalized_frequencies = {"languages": columns}
-for year in countries_collected_by_year:
-    for i in range(0, len(corpora)):
-        for country in countries_collected_by_year[year]:
-            curr_corpus = columns[i]
-            if year not in normalized_frequencies:
-                normalized_frequencies[year] = {}
-            if country not in normalized_frequencies[year]:
-                normalized_frequencies[year][country] = {}
-            # There are no frequency entries if no corpus for this year exists
-            year_ = corpora_size_multiplier['corpora'][int(year)]
-            if curr_corpus in year_:
-                multiplier = year_[curr_corpus]
-                curr_freq = countries_collected_by_year[year][country]['frequencies'][i]
-                normalized_frequencies[year][country][i] = round(
-                    curr_freq * multiplier)
-                print("curr_corpus: " + curr_corpus + "; freq: " + str(curr_freq) + "; multiplier: " +
-                      str(multiplier) + "; normalized_freq: " +
-                      str(normalized_frequencies[year][country][i]))
+query = "SELECT sum(f.freq) total_freq, year FROM freq f, translation t WHERE f.translation_id = t.id " \
+        "AND t.located_in = '{}' AND f.corpus = '{}' GROUP BY t.located_in, year, corpus;"
+for locatedIn in locatedIns:
+    print("Generating reference values for " + locatedIn)
+    for corpus in corpora:
+        cursor.execute(query.format(locatedIn, corpus))
+        connection.commit()
+        result = cursor.fetchall()
+        for entry in result:
+            year = entry[1]
+            value = entry[0] * float(corpora_size_multiplier['corpora'][year][corpus])
+            for dataframe in dataframes:
+                if dataframe[0] == year:
+                    dataframe[1].set_value(locatedIn, corpus, value)
+
+connection.close()
+columns = dataframes[0][1].axes[1].tolist()
+uncollected_year_country_list = []
+
+for i in range(len(dataframes)):
+    # For every year (dataframe/matrix)
+    df = dataframes[i]
+    rows = df[1].axes[0].tolist()
+    curr_year = df[0]
+    for index, row in df[1].iterrows():
+        # For every country (row)
+        country = index
+        values = list(row.values)
+        uncollected_year_country_list.append({str(curr_year): {country: values}})
+
+# Add the column headings (corpora) to the json object
+countries_collected_by_year = {"languages": columns}
+
+# Collect all countries by year
+for entry in uncollected_year_country_list:
+    for key, value in entry.items():
+        if str(key) in countries_collected_by_year.keys():
+            for country, values in value.items():
+                countries_collected_by_year[str(key)][country] = values
+        else:
+            countries_collected_by_year[str(key)] = value
 
 
 class NumPyEncoder(json.JSONEncoder):
@@ -150,4 +125,3 @@ class NumPyEncoder(json.JSONEncoder):
 
 with open(config.get('server', 'country-references-file'), "w+") as result_file:
     result_file.write("var countryReferences = " + json.dumps(countries_collected_by_year, cls=NumPyEncoder) + ";")
-    result_file.write("var countryReferencesNormalized = " + json.dumps(normalized_frequencies, cls=NumPyEncoder) + ";")
