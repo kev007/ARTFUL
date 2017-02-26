@@ -23,7 +23,10 @@ def get_years(c):
 config = configparser.ConfigParser()
 config.read('config.conf')
 connection = sqlite3.connect(config.get('database', 'file'))
-cursor = connection.cursor()
+connection_in_memory = sqlite3.connect(':memory:')
+query = "".join(line for line in connection.iterdump())
+connection_in_memory.executescript(query)
+cursor = connection_in_memory.cursor()
 
 locatedIns = get_located_ins(cursor)
 years = get_years(cursor)
@@ -51,6 +54,8 @@ for locatedIn in locatedIns:
             for dataframe in dataframes:
                 if dataframe[0] == year:
                     dataframe[1].set_value(locatedIn, corpus, value)
+    # if locatedIn == 'South Korea':
+    #    break
 
 connection.close()
 columns = dataframes[0][1].axes[1].tolist()
@@ -75,9 +80,60 @@ for entry in uncollected_year_country_list:
     for key, value in entry.items():
         if str(key) in countries_collected_by_year.keys():
             for country, values in value.items():
+                if country not in countries_collected_by_year[str(key)]:
+                    countries_collected_by_year[str(key)][country] = {}
                 countries_collected_by_year[str(key)][country]['frequencies'] = values
         else:
             countries_collected_by_year[str(key)] = value
+
+# Calculate the average corpora size for every corpus for every year
+avgCorporaSizesPerYears = {"corpora": {}}
+max_corpora_size = 0
+for corpus in corpora:
+    located_in_query = "SELECT year, round(sum(size) * 1.0 / count(*)) FROM corpora WHERE lang = '{}' GROUP BY year" \
+        .format(corpus)
+    cursor.execute(located_in_query)
+    results = cursor.fetchall()
+    curr_corpus = {}
+    for result in results:
+        curr_corpus_size = result[1]
+        curr_corpus[result[0]] = curr_corpus_size
+        if curr_corpus_size > max_corpora_size:
+            max_corpora_size = curr_corpus_size
+    avgCorporaSizesPerYears["corpora"][corpus] = curr_corpus
+
+# Calculate corpus size multiplier
+corpora_size_multiplier = {"corpora": {}}
+for year in years:
+    for corpus in corpora:
+        if year in avgCorporaSizesPerYears['corpora'][corpus]:
+            curr_corpus_avg_size = avgCorporaSizesPerYears['corpora'][corpus][year]
+            if year not in corpora_size_multiplier['corpora']:
+                corpora_size_multiplier['corpora'][year] = {}
+            corpora_size_multiplier['corpora'][year][corpus] = max_corpora_size / curr_corpus_avg_size
+        else:
+            print(str(year) + "; " + corpus + " not found")
+
+# Normalize frequency entries based on biggest corpus size
+normalized_frequencies = {"languages": columns}
+for year in countries_collected_by_year:
+    for i in range(0, len(corpora)):
+        for country in countries_collected_by_year[year]:
+            curr_corpus = columns[i]
+            if year not in normalized_frequencies:
+                normalized_frequencies[year] = {}
+            if country not in normalized_frequencies[year]:
+                normalized_frequencies[year][country] = {}
+            # There are no frequency entries if no corpus for this year exists
+            year_ = corpora_size_multiplier['corpora'][int(year)]
+            if curr_corpus in year_:
+                multiplier = year_[curr_corpus]
+                curr_freq = countries_collected_by_year[year][country]['frequencies'][i]
+                normalized_frequencies[year][country][i] = round(
+                    curr_freq * multiplier)
+                print("curr_corpus: " + curr_corpus + "; freq: " + str(curr_freq) + "; multiplier: " +
+                      str(multiplier) + "; normalized_freq: " +
+                      str(normalized_frequencies[year][country][i]))
 
 
 class NumPyEncoder(json.JSONEncoder):
@@ -94,3 +150,4 @@ class NumPyEncoder(json.JSONEncoder):
 
 with open(config.get('server', 'country-references-file'), "w+") as result_file:
     result_file.write("var countryReferences = " + json.dumps(countries_collected_by_year, cls=NumPyEncoder) + ";")
+    result_file.write("var countryReferencesNormalized = " + json.dumps(normalized_frequencies, cls=NumPyEncoder) + ";")
