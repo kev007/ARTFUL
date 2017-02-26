@@ -49,19 +49,25 @@ public class FreqController {
     @RequestMapping(value = "/freqs", method = RequestMethod.GET)
     public String getFreqs(@RequestParam(value = "start", required = false, defaultValue = "1900") Integer start,
                            @RequestParam(value = "end", required = false, defaultValue = "2100") Integer end) {
-        //TODO get real frequency data from database
         JSONObject response = new JSONObject();
         JSONArray countries = new JSONArray();
         response.put("countries", countries);
 
         List<Object[]> freqs = repository.findAllByYearBetween(start, end);
 
+        final Integer[] maxCorporaSize = {0};
         freqs.forEach((record) -> {
             JSONObject currCountry = new JSONObject();
             currCountry.put("name", (String) record[0]);
             currCountry.put("frequency", (Long) record[1]);
+            Integer currCorporaSize = (Integer) record[2];
+            currCountry.put("avgCorporaSize", currCorporaSize);
             countries.put(currCountry);
+            if(currCorporaSize > maxCorporaSize[0]){
+                maxCorporaSize[0] = currCorporaSize;
+            }
         });
+        response.put("max corpora size", maxCorporaSize[0]);
         return String.valueOf(response);
     }
 }

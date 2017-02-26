@@ -8,7 +8,9 @@ var ingoingReferences = false;
 var mergedData;
 var countryFreqsOut = {};
 var countryFreqsIn = {};
-
+var maxCorporaSize = 0;
+var countryFreqSum = 0;
+var countryFreq;
 function initLeafletMap() {
     map = L.map('mapid').setView([51.505, -0.09], 3);
 
@@ -72,19 +74,28 @@ function initLeafletMap() {
             document.getElementById('hoverCountry').textContent = props.name;
             var currCountryFreq;
             var selectedReferences;
-            if (ingoingReferences) {
-                selectedReferences = countryFreqsIn;
-                currCountryFreq = countryFreqsIn[props.name.toLowerCase()];
+            var totalCountryReferencesSelected = 0;
+            if (selectedCountry) {
+                if (ingoingReferences) {
+                    selectedReferences = countryFreqsIn;
+                    currCountryFreq = countryFreqsIn[props.name.toLowerCase()];
+                    for (var key in selectedReferences) {
+                        totalCountryReferencesSelected += selectedReferences[key];
+                    }
+                } else {
+                    selectedReferences = countryFreqsOut;
+                    currCountryFreq = countryFreqsOut[props.name];
+                }
+                for (var key in selectedReferences) {
+                    totalCountryReferencesSelected += selectedReferences[key];
+                }
             } else {
-                selectedReferences = countryFreqsOut;
-                currCountryFreq = countryFreqsOut[props.name];
+                currCountryFreq = props.frequency;
+                totalCountryReferencesSelected = countryFreqSum;
             }
-            var totalCountryReferences = 0;
-            for (var key in selectedReferences) {
-                totalCountryReferences += selectedReferences[key];
-            }
-            document.getElementById('hoverFreq').innerHTML = currCountryFreq ? numberWithCommas(props.frequency)
-                + " (" + ((currCountryFreq / totalCountryReferences) * 100)
+
+            document.getElementById('hoverFreq').innerHTML = currCountryFreq ? numberWithCommas(currCountryFreq)
+                + " (" + ((currCountryFreq / totalCountryReferencesSelected) * 100)
                     .toFixed(2) + "&#37;) "
                 : numberWithCommas(props.frequency);
 
@@ -113,9 +124,12 @@ function initLeafletMap() {
     info.addTo(map);
 }
 
-//TODO: overlapping legend levels?
-var freqMax = Math.min();
-var freqMin = Math.max();
+var freqMax = Number.MIN_VALUE;
+var freqMin = Number.MAX_VALUE;
+var freqMaxIngoing = Number.MIN_VALUE;
+var freqMinIngoing = Number.MAX_VALUE;
+var freqMaxOutgoing = Number.MIN_VALUE;
+var freqMinOutgoing = Number.MAX_VALUE;
 var legend1 = 100000000;
 var legend2 = 1000000000;
 var legend3 = 2500000000;
@@ -129,25 +143,37 @@ var legend10 = 60000000000;
 var legendCount = 11;
 
 function calculateLegend() {
-    //TODO: Algorithm stuff
-
-    var range = freqMax - freqMin;
+    var curr_min;
+    var curr_max;
+    if (selectedCountry) {
+        if (ingoingReferences) {
+            curr_min = freqMinIngoing;
+            curr_max = freqMaxIngoing;
+        } else {
+            curr_min = freqMinOutgoing;
+            curr_max = freqMaxOutgoing;
+        }
+    } else {
+        curr_min = freqMin;
+        curr_max = freqMax;
+    }
+    var range = curr_max - curr_min;
     var step = range / legendCount;
     var significantFigures = 2;
     // step = sigFigs(step, 2);
     // freqMin = sigFigs(freqMin, 3);
     // freqMax = sigFigs(freqMax, 3);
 
-    legend1 = parseInt(sigFigs(freqMin, significantFigures+1)) || 0;
-    legend2 = parseInt(sigFigs(freqMin + (1 * step), significantFigures)) || 0;
-    legend3 = parseInt(sigFigs(freqMin + (2 * step), significantFigures)) || 0;
-    legend4 = parseInt(sigFigs(freqMin + (3 * step), significantFigures)) || 0;
-    legend5 = parseInt(sigFigs(freqMin + (4 * step), significantFigures)) || 0;
-    legend6 = parseInt(sigFigs(freqMin + (5 * step), significantFigures)) || 0;
-    legend7 = parseInt(sigFigs(freqMin + (6 * step), significantFigures)) || 0;
-    legend8 = parseInt(sigFigs(freqMin + (7 * step), significantFigures)) || 0;
-    legend9 = parseInt(sigFigs(freqMin + (8 * step), significantFigures)) || 0;
-    legend10 = parseInt(sigFigs(freqMax, significantFigures)) || 0;
+    legend1 = parseInt(sigFigs(curr_min, significantFigures + 1)) || 0;
+    legend2 = parseInt(sigFigs(curr_min + (step), significantFigures)) || 0;
+    legend3 = parseInt(sigFigs(curr_min + (2 * step), significantFigures)) || 0;
+    legend4 = parseInt(sigFigs(curr_min + (3 * step), significantFigures)) || 0;
+    legend5 = parseInt(sigFigs(curr_min + (4 * step), significantFigures)) || 0;
+    legend6 = parseInt(sigFigs(curr_min + (5 * step), significantFigures)) || 0;
+    legend7 = parseInt(sigFigs(curr_min + (6 * step), significantFigures)) || 0;
+    legend8 = parseInt(sigFigs(curr_min + (7 * step), significantFigures)) || 0;
+    legend9 = parseInt(sigFigs(curr_min + (8 * step), significantFigures)) || 0;
+    legend10 = parseInt(sigFigs(curr_max, significantFigures)) || 0;
 }
 
 function sigFigs(n, sig) {
@@ -212,42 +238,50 @@ function httpGetAsync(url, callback) {
     xmlHttp.send();
 }
 
-function mergeCountryFreq(countries, geoJSON) {
-    freqMax = Math.max();
-    freqMin = Math.min();
+function mergeCountryFreq(countries, maxCorporaSize, geoJSON, doNormalize) {
+    freqMax = Number.MIN_VALUE;
+    freqMin = Number.MAX_VALUE;
     function transform(element, index) {
         element.properties.frequency = 0;
     }
     geoJSON['features'].forEach(transform);
     mergedData = geoJSON;
+    countryFreqSum = 0;
     $.each(countries, function (index, country) {
         if (country.name.search(new RegExp(country.name, "i")) != -1) {
+            var normalized_freq = 0;
             for (var i = 0; i < mergedData.features.length; i++) {
                 if (mergedData.features[i].properties.name.toLowerCase() === country.name.toLowerCase()) {
-                    mergedData.features[i].properties.frequency = country.frequency;
+                    var frequency_multiplier;
+                    frequency_multiplier = maxCorporaSize / country.avgCorporaSize;
+
+                    if (doNormalize) {
+                        normalized_freq = Math.ceil(country.frequency * (frequency_multiplier));
+                    } else {
+                        normalized_freq = country.frequency;
+                    }
+                    mergedData.features[i].properties.frequency = normalized_freq;
+                    countryFreqSum += normalized_freq;
                     break;
                 }
             }
             //Ignore the selected country for legend calculation
-            if (country.frequency > freqMax && country.name.toLowerCase() !== selectedCountry) {
+            if (normalized_freq > freqMax && country.name.toLowerCase() !== selectedCountry) {
                 if(selectedCountry && country.name.toLowerCase() !== selectedCountry.toLowerCase()){
-                    freqMax = country.frequency;
+                    freqMax = normalized_freq;
                 } else if(!selectedCountry){
-                    freqMax = country.frequency;
+                    freqMax = normalized_freq;
                 }
             }
-            if (country.frequency < freqMin && country.name.toLowerCase() !== selectedCountry) {
+            if (normalized_freq < freqMin && country.name.toLowerCase() !== selectedCountry) {
                 if(selectedCountry && country.name.toLowerCase() !== selectedCountry.toLowerCase()){
-                    freqMin = country.frequency;
+                    freqMin = normalized_freq;
                 } else if(!selectedCountry){
-                    freqMin = country.frequency;
+                    freqMin = normalized_freq;
                 }
             }
         }
     });
-
-    calculateLegend();
-    legend.addTo(map);
 
     return mergedData;
 }
@@ -308,8 +342,6 @@ function removeCustomLayer() {
 
 function proceedCountryReferences(clickObject) {
     removeCustomLayer();
-    //TODO selectedCountryReferences wann zurücksetzen?
-    //selectedCountryReferences = 0;
     if (selectedCountry && selectedCountry.toLowerCase() === clickObject.target.feature.properties.name.toLowerCase()) {
         selectedCountry = '';
         var beginYear = $('#slider-range').slider("values", 0);
@@ -324,10 +356,36 @@ function proceedCountryReferences(clickObject) {
 }
 
 function fillCountryReferences(name) {
-    if (ingoingReferences) {
-        getLanguageReferences(name)
+    if (name == '') {
+        console.log('No country selected')
     } else {
-        getCountryReferences(name)
+        console.log(name);
+        if (ingoingReferences) {
+            getLanguageReferences(name);
+            console.log('1');
+        } else {
+            getCountryReferences(name);
+            console.log('2');
+        }
+    }
+    calculateLegend();
+    legend.addTo(map);
+
+    removeCustomLayer();
+    addGeoJsonMap(mergedData, map, selectedCountry);
+    colorCountry(selectedCountry);
+    info.update();
+}
+
+function calcWeightedFrequencies () {
+    //TODO: calculation
+
+    mergedData.features[i].properties.corporaSize = newSize;
+    if (newSize > freqMax && country.toLowerCase() !== selectedCountry.toLowerCase()) {
+        sizeMax = newSize;
+    }
+    if (newSize < freqMin && country.toLowerCase() !== selectedCountry.toLowerCase()) {
+        sizeMin = newSize;
     }
 }
 
@@ -368,8 +426,8 @@ function getGeoJson(country) {
 
 function getCountryReferences(selectedCountry) {
     countryFreqsOut = {};
-    freqMax = Math.max();
-    freqMin = Math.min();
+    freqMaxOutgoing = Number.MIN_VALUE;
+    freqMinOutgoing = Number.MAX_VALUE;
 
     var beginYear = $('#slider-range').slider("values",0);
     var endYear = $('#slider-range').slider("values",1);
@@ -393,24 +451,17 @@ function getCountryReferences(selectedCountry) {
             }
         }
         mergedData.features[i].properties.frequency = newFreq;
-        if (newFreq > freqMax && country.toLowerCase() !== selectedCountry.toLowerCase()) {
-            freqMax = newFreq;
+        if (newFreq > freqMaxOutgoing && country.toLowerCase() !== selectedCountry.toLowerCase()) {
+            freqMaxOutgoing = newFreq;
         }
-        if (newFreq < freqMin && country.toLowerCase() !== selectedCountry.toLowerCase()) {
-            freqMin = newFreq;
+        if (newFreq < freqMinOutgoing && country.toLowerCase() !== selectedCountry.toLowerCase()) {
+            freqMinOutgoing = newFreq;
         }
         countryFreqsOut[country] = newFreq;
     }
-
-    calculateLegend();
-    legend.addTo(map);
-
-    removeCustomLayer();
-    addGeoJsonMap(mergedData, map, selectedCountry);
-    colorCountry(selectedCountry);
 }
 
-function getLanguageReferences(country) {
+function getLanguageReferences(selectedCountry) {
     countryFreqsIn = {};
     var beginYear = $('#slider-range').slider("values",0);
     var endYear = $('#slider-range').slider("values",1);
@@ -422,29 +473,41 @@ function getLanguageReferences(country) {
     var references = [];
 
     for (var j = 0; j < years; j++) {
-        if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(country)) {
-            for (var i = 0; i < countryReferences[beginYear + j][country].length; i++) {
-                data[i] += countryReferences[beginYear + j][country][i];
+        if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(selectedCountry)) {
+            for (var i = 0; i < countryReferences[beginYear + j][selectedCountry].length; i++) {
+                data[i] += countryReferences[beginYear + j][selectedCountry][i];
             }
         }
     }
-    function transform(element, index) {
+    freqMaxIngoing = Number.MIN_VALUE;
+    freqMinIngoing = Number.MAX_VALUE;
+    function transform(curr_frequency, index) {
         var country_for_corpus = getCountry(countryReferences['languages'][index]);
         if (country_for_corpus) {
-            references.push({'name': country_for_corpus, 'frequency': element});
-            countryFreqsIn[country_for_corpus] = element;
+            var avgCorpusSizesSum = 0;
+            var corpus = countryReferences['languages'][index];
+            for (var j = beginYear; j < beginYear + years; j++) {
+                if (!isNaN(avgCorpusSizes['corpora'][corpus]['average corpus size'][j])) {
+                    avgCorpusSizesSum += avgCorpusSizes['corpora'][corpus]['average corpus size'][j]
+                }
+            }
+            if (curr_frequency > freqMaxIngoing && country_for_corpus.toLowerCase() !== selectedCountry.toLowerCase()) {
+                freqMaxIngoing = curr_frequency;
+            }
+            if (curr_frequency < freqMinIngoing && country_for_corpus.toLowerCase() !== selectedCountry.toLowerCase()) {
+                freqMinIngoing = curr_frequency;
+            }
+            references.push({
+                'name': country_for_corpus,
+                'frequency': curr_frequency,
+                'avgCorporaSize': Math.ceil(avgCorpusSizesSum / years)
+            });
+            countryFreqsIn[country_for_corpus] = curr_frequency;
         }
     }
-
     data.forEach(transform);
-    mergedData = mergeCountryFreq(references, countryData);
-
-    calculateLegend();
-    legend.addTo(map);
-
-    removeCustomLayer();
-    addGeoJsonMap(mergedData, map, country);
-    colorCountry(selectedCountry);
+    mergedData = mergeCountryFreq(references, maxCorporaSize, countryData, false);
+    return references;
 }
 
 function getTopTen(e) {
@@ -489,8 +552,11 @@ function addGeoJsonMap(data, map, country) {
 
 function getFreqs(beginYear, endYear, extendedCallback) {
     httpGetAsync('freqs?start=' + beginYear + '&end=' + endYear, function (response) {
-        var countryFreq = JSON.parse(response);
-        mergedData = mergeCountryFreq(countryFreq['countries'], countryData);
+        countryFreq = JSON.parse(response);
+        maxCorporaSize = countryFreq['max corpora size'];
+        mergedData = mergeCountryFreq(countryFreq['countries'], maxCorporaSize, countryData, true);
+        calculateLegend();
+        legend.addTo(map);
         extendedCallback();
     });
 }
@@ -532,6 +598,7 @@ $(function () {
             getFreqs(ui.values[0], ui.values[1], function () {
                 addGeoJsonMap(mergedData, map);
             });
+            // fillCountryReferences(selectedCountry);
         }
     });
     $("#year").val($("#slider-range").slider("values", 0) +

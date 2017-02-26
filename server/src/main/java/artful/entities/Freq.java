@@ -60,6 +60,7 @@ public class Freq {
                 "id=" + id +
                 ", translation_id=" + translation_id +
                 ", freq=" + freq +
+                ", corpus='" + corpus + '\'' +
                 ", year=" + year +
                 '}';
     }

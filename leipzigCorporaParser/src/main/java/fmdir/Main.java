@@ -13,6 +13,7 @@ import java.util.Date;
 public class Main {
     public static Properties prop = new Properties();
 
+    //Escape codes for coloring the console output
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_BLACK = "\u001B[30m";
     public static final String ANSI_RED = "\u001B[31m";
@@ -37,7 +38,10 @@ public class Main {
          * DELETES ALL ROWS
          */
         DatabaseTools.deleteAllRows("freq");
+        DatabaseTools.deleteAllRows("corpora");
         DatabaseTools.deleteAllRows("translation");
+        DatabaseTools.resetIncrementSequence();
+        DatabaseTools.compactDatabase();
 
         //Import translations CSV
         ArrayList<Path> allTranslationPaths = FileTools.getAllPathsFrom(prop.getProperty("translationPath"));
@@ -59,14 +63,12 @@ public class Main {
             currentCorpora++;
             long parseStart = System.currentTimeMillis();
 
-//            String[] segments = path.split("\\\\");
-//            String fileName = segments[segments.length-1];
             String fileName = path.getFileName().toString();
 
             String year = FileTools.parseYear(fileName);
             String language = FileTools.parseLanguage(fileName);
 
-            String tempLang = "";
+            String tempLang;
             try {
                 tempLang = DatabaseTools.languageKeys.get(language.substring(0, language.lastIndexOf("-")));
             } catch (Exception e) {
@@ -83,19 +85,7 @@ public class Main {
 
                 System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + language + " (using: " + tempLang +  "): " + wordFreq.size() + " words imported in \t\t " + (float)(System.currentTimeMillis()-parseStart)/1000 + " seconds" + ANSI_RESET);
 
-                int corporaSize;
-                int sizeRank = FileTools.getCorporaSize(path.toString());
-                switch (sizeRank) {
-                    case 5: corporaSize = 10000; break;
-                    case 10: corporaSize = 30000; break;
-                    case 15: corporaSize = 100000; break;
-                    case 20: corporaSize = 300000; break;
-                    case 25: corporaSize = 1000000; break;
-                    case 30: corporaSize = 3000000; break;
-                    default: corporaSize = 0; break;
-                }
-
-                DatabaseTools.fillDatabase(translations, wordFreq, year, language, corporaSize);
+                DatabaseTools.fillDatabase(translations, wordFreq, year, language, path);
             } else {
 //                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
             }
@@ -151,7 +141,7 @@ public class Main {
         }
         if(prop.getProperty("dbPath") == null || prop.getProperty("dbPath").isEmpty()) {
 
-            defaultPath = "database/translations.sqlite";
+            defaultPath = "server/src/main/resources/translations.sqlite";
 
             System.out.println("dbPath empty! Using default path: " + ANSI_GREEN + defaultPath + ANSI_RESET);
             prop.setProperty("dbPath", defaultPath);

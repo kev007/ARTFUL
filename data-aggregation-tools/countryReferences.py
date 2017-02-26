@@ -22,8 +22,11 @@ def get_years(c):
 
 config = configparser.ConfigParser()
 config.read('config.conf')
-connection = sqlite3.connect(config['database']['file'])
-cursor = connection.cursor()
+connection = sqlite3.connect(config.get('database', 'file'))
+connection_in_memory = sqlite3.connect(':memory:')
+query = "".join(line for line in connection.iterdump())
+connection_in_memory.executescript(query)
+cursor = connection_in_memory.cursor()
 
 locatedIns = get_located_ins(cursor)
 years = get_years(cursor)
@@ -37,6 +40,34 @@ for i in years:
     year_dataframe_pair = [i, DataFrame(0, index=locatedIns, columns=corpora)]
     dataframes.append(year_dataframe_pair)
 
+# Calculate the average corpora size for every corpus for every year
+avgCorporaSizesPerYears = {"corpora": {}}
+max_corpora_size = 0
+for corpus in corpora:
+    located_in_query = "SELECT year, round(sum(size) * 1.0 / count(*)) FROM corpora WHERE lang = '{}' GROUP BY year" \
+        .format(corpus)
+    cursor.execute(located_in_query)
+    results = cursor.fetchall()
+    curr_corpus = {}
+    for result in results:
+        curr_corpus_size = result[1]
+        curr_corpus[result[0]] = curr_corpus_size
+        if curr_corpus_size > max_corpora_size:
+            max_corpora_size = curr_corpus_size
+    avgCorporaSizesPerYears["corpora"][corpus] = curr_corpus
+
+# Calculate corpus size multiplier
+corpora_size_multiplier = {"corpora": {}}
+for year in years:
+    for corpus in corpora:
+        if year in avgCorporaSizesPerYears['corpora'][corpus]:
+            curr_corpus_avg_size = avgCorporaSizesPerYears['corpora'][corpus][year]
+            if year not in corpora_size_multiplier['corpora']:
+                corpora_size_multiplier['corpora'][year] = {}
+            corpora_size_multiplier['corpora'][year][corpus] = max_corpora_size / curr_corpus_avg_size
+        else:
+            print(str(year) + "; " + corpus + " not found")
+
 query = "SELECT sum(f.freq) total_freq, year FROM freq f, translation t WHERE f.translation_id = t.id " \
         "AND t.located_in = '{}' AND f.corpus = '{}' GROUP BY t.located_in, year, corpus;"
 for locatedIn in locatedIns:
@@ -46,8 +77,8 @@ for locatedIn in locatedIns:
         connection.commit()
         result = cursor.fetchall()
         for entry in result:
-            value = entry[0]
             year = entry[1]
+            value = entry[0] * float(corpora_size_multiplier['corpora'][year][corpus])
             for dataframe in dataframes:
                 if dataframe[0] == year:
                     dataframe[1].set_value(locatedIn, corpus, value)
@@ -92,5 +123,5 @@ class NumPyEncoder(json.JSONEncoder):
             return super(NumPyEncoder, self).default(obj)
 
 
-with open(config['server']['country-references-file'], "w+") as result_file:
-    result_file.write("var countryReferences = " + json.dumps(countries_collected_by_year, cls=NumPyEncoder))
+with open(config.get('server', 'country-references-file'), "w+") as result_file:
+    result_file.write("var countryReferences = " + json.dumps(countries_collected_by_year, cls=NumPyEncoder) + ";")

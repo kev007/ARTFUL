@@ -15,6 +15,7 @@
     <script src="<c:url value="/resources/data/country-references.js" />"></script>
     <script src="<c:url value="/resources/data/language-country-mapping.js" />"></script>
     <script src="<c:url value="/resources/data/country-language-mapping.js" />"></script>
+    <script src="<c:url value="/resources/data/average-corpus-sizes.js" />"></script>
     <script src="<c:url value="/resources/js/jquery-ui-1.12.1/jquery-ui.js" />"></script>
     <script src="<c:url value="/resources/js/app.js" />"></script>
     <script src="<c:url value="/resources/js/leaflet.js" />"></script>
