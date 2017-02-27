@@ -1,0 +1,4 @@
+PREFIX dbo: <http://dbpedia.org/ontology/> 
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+SELECT DISTINCT ?id ?entityname ?countrylabel lang(?entityname) 
+WHERE { ?country dbo:leader ?leader ; rdfs:label ?countrylabel . ?x dbo:country ?country . ?leader dbo:wikiPageID ?id ; rdfs:label ?entityname .  FILTER (lang(?countrylabel)='en')    }ORDER BY ?entityname

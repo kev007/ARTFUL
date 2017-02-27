@@ -228,14 +228,14 @@ public class FileTools {
                 String leftPath = fileName.split(segments[3])[0];
                 String rightPath = segments[3];
 
-                int sizeRankNew = getCorporaSizeRank(fileName);
+                int sizeRankNew = getCorporaSize(fileName);
 
                 if (sizeRankNew == 0) {
                     System.out.println(ANSI_WHITE + "bad file syntax: " + fileName + ANSI_RESET);
                 } else if (sizeRankNew < 0) {
                     //compressed file. do nothing. for now.
                 } else if (largestRightPath.containsKey(leftPath)) {
-                    int sizeRankOld = getCorporaSizeRank(largestRightPath.get(leftPath));
+                    int sizeRankOld = getCorporaSize(largestRightPath.get(leftPath));
 
                     if (sizeRankNew > sizeRankOld) {
                         oldFilePaths.add(FileSystems.getDefault().getPath(folder + "/" + leftPath + largestRightPath.get(leftPath)));
@@ -292,7 +292,7 @@ public class FileTools {
         }
     }
 
-    public static int getCorporaSizeRank(String path) {
+    public static int getCorporaSize(String path) {
         String[] segments = path.split("_");
         String size = segments[segments.length-1];
 

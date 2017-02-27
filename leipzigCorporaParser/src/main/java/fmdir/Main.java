@@ -68,26 +68,38 @@ public class Main {
             String year = FileTools.parseYear(fileName);
             String language = FileTools.parseLanguage(fileName);
 
-            String tempLang;
-            try {
+            String tempLang = "";
+            if(language.contains("-")){
                 tempLang = DatabaseTools.languageKeys.get(language.substring(0, language.lastIndexOf("-")));
-            } catch (Exception e) {
-                tempLang = "en";
+            }else{
+                tempLang = DatabaseTools.languageKeys.get(language);
             }
             if(tempLang == null){
                 tempLang = "en";
             }
 
-            if(allTranslations.containsKey(tempLang)) {
+            if(!allTranslations.containsKey(tempLang)) {
+            	tempLang = "en";
+            }else{
                 HashMap<String, Integer> wordFreq = FileTools.importWordFrequencies(path);
 
                 ArrayList<Translation> translations = allTranslations.get(tempLang);
 
                 System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + language + " (using: " + tempLang +  "): " + wordFreq.size() + " words imported in \t\t " + (float)(System.currentTimeMillis()-parseStart)/1000 + " seconds" + ANSI_RESET);
 
-                DatabaseTools.fillDatabase(translations, wordFreq, year, language, path);
-            } else {
-//                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
+                int corporaSize;
+                int sizeRank = FileTools.getCorporaSize(path.toString());
+                switch (sizeRank) {
+                    case 5: corporaSize = 10000; break;
+                    case 10: corporaSize = 30000; break;
+                    case 15: corporaSize = 100000; break;
+                    case 20: corporaSize = 300000; break;
+                    case 25: corporaSize = 1000000; break;
+                    case 30: corporaSize = 3000000; break;
+                    default: corporaSize = 0; break;
+                }
+
+                DatabaseTools.fillDatabase(translations, wordFreq, year, language, corporaSize);
             }
         }
 
@@ -104,7 +116,7 @@ public class Main {
         InputStream input = null;
 
         try {
-            input = new FileInputStream("leipzigCorporaParser/config.properties");
+            input = new FileInputStream("config.properties");
 
             // load a properties file
             prop.load(input);
@@ -163,5 +175,24 @@ public class Main {
         DatabaseTools.languageKeys.put("por", "pt");
         DatabaseTools.languageKeys.put("rus", "ru");
         DatabaseTools.languageKeys.put("zho", "zh");
+        DatabaseTools.languageKeys.put("bel", "be");
+        DatabaseTools.languageKeys.put("nld", "nl");
+        DatabaseTools.languageKeys.put("kor", "ko");
+        DatabaseTools.languageKeys.put("ell", "el");
+        DatabaseTools.languageKeys.put("glg", "gl");
+        DatabaseTools.languageKeys.put("ron", "ro");
+        DatabaseTools.languageKeys.put("slv", "sl");
+        DatabaseTools.languageKeys.put("ben", "bn");
+        DatabaseTools.languageKeys.put("cat", "ca");
+        DatabaseTools.languageKeys.put("tur", "tr");
+        DatabaseTools.languageKeys.put("kau", "kr");
+        DatabaseTools.languageKeys.put("ind", "in");
+        DatabaseTools.languageKeys.put("lav", "lv");
+        DatabaseTools.languageKeys.put("eus", "eu");
+        DatabaseTools.languageKeys.put("hye", "hy");
+        DatabaseTools.languageKeys.put("gle", "ga");
+        DatabaseTools.languageKeys.put("srp", "sr");
+        DatabaseTools.languageKeys.put("bul", "bg");
+        DatabaseTools.languageKeys.put("ces", "cs");
     }
 }
