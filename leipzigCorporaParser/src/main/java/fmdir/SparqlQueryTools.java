@@ -29,14 +29,23 @@ import org.apache.jena.rdf.model.Model;
  * @author Daniel Obraczka
  *
  *	This class handles everything sparql related, e.g. getting city names in different translations from dbpedia
+ *  
  */
 public class SparqlQueryTools {
 
+	/**
+	 * Used to delete strings inside brackets
+	 */
 	public static final String parRegex = "\\(([^)]+)\\)";
 	public static final String DBPEDIA_ENDPOINT = "http://dbpedia.org/sparql";
 	public static final String queriesBasePath = "resources/SPARQLQueries/";
 	public static final String translationsBasePath = "resources/translations/";
     
+	/**
+	 *	Reads queries seperated by empty lines from arg[0], queries dbpedia, combines the results of all queries into a set
+	 *  and writes the result into args[1] as tabseperated csv
+	 * @param args queriesFile located in resources/SPARQLQueries, output.csv to be written to resources/translation
+	 */
     public static void main(String[] args){
     	if(args.length != 2){
     		System.err.println("Usage: SparqlQueryTools <queriesFile> <output.csv>\n ");
@@ -50,6 +59,11 @@ public class SparqlQueryTools {
 		}
     }
     
+    /**
+     * Executes and integrates all queries and returns the results as tabseperated string
+     * @param queries List of SPARQL queries
+     * @return resultStr tabseperated result string
+     */
     public static String getResults(List<String> queries){
     	String resultStr = "";
 		int c = 0;
@@ -70,6 +84,13 @@ public class SparqlQueryTools {
 		return resultStr;
     }
     
+    /**
+     * Gets SPARQL queries that are seperated by empty lines from the given file.
+     * The select statement in each query has to be SELECT DISTINCT ?ID ?ENTITYLABEL ?COUNTRY LANG(?ENTITYLABEL) else an error will be thrown
+     * @param queriesFile File containing SPARQL queries seperated by empty lines
+     * @return queries List of query strings
+     * @throws IOException
+     */
     public static List<String> getQueriesFromFile(File queriesFile) throws IOException{
         InputStream fis = new FileInputStream(queriesFile);
         InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
@@ -94,6 +115,12 @@ public class SparqlQueryTools {
     	return queries;
     }
     
+    /**
+     * Writes the resultStr to file
+     * @param outputFile File where resultStr will be written to
+     * @param resultStr String that will be written to file
+     * @throws FileNotFoundException
+     */
     public static void writeToFile(File outputFile, String resultStr) throws FileNotFoundException{
     	System.out.println("Writing results to "+outputFile.getAbsolutePath());
     	PrintWriter writer = new PrintWriter(outputFile);
@@ -102,70 +129,15 @@ public class SparqlQueryTools {
     	System.out.println("Finished successfully");
     }
     
-//    public static void getPoliticianData(){
-//    	String resultStr = "";
-//		int c = 0;
-//		HashSet<QuerySolution> finalRes = new HashSet<QuerySolution>();
-//		ResultSet results = querySelect(GET_POLITICIANS_QUERY, DBPEDIA_ENDPOINT, null, null);
-//		while(results.hasNext()){
-//			finalRes.add(results.next());
-//		}
-//		for(QuerySolution qs: finalRes){
-//			c++;
-//			String id = qs.getLiteral("?id").getString();
-//			String leadertmp = qs.getLiteral("?leadername").getString();
-//			//Clean city labels like "Wayanad (district)" by removing everything enclosed in brackets
-//			String leaderlabel = leadertmp.replaceAll(parRegex,"").trim();
-//			String countrytmp = qs.getLiteral("?countrylabel").getString();
-//			String country = countrytmp.replaceAll(parRegex, "").trim();
-//			String language = qs.getLiteral("?callret-3").getString();
-//			resultStr += id + "\t" + leaderlabel + "\t" + country + "\t" + language + "\n";
-//		}
-//		System.out.println("\n\n == " + c + " == \n\n");
-////		System.out.println(resultStr);
-//    		try{
-//    			PrintWriter writer = new PrintWriter(new File("leipzigCorporaParser/resources/translations/politicians.csv"));
-//    			writer.write(resultStr);
-//    			writer.close();
-//    		}catch(Exception e){
-//    			e.printStackTrace();
-//    		}
-//    }
-//    
-//    public static void getCityData(){
-//    	String resultStr = "";
-//		int c = 0;
-//		List<String> cityQueries = new ArrayList<String>();
-//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_SETTLEMENT_1);
-//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_SETTLEMENT_2);
-//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_SETTLEMENT_3);
-//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_CITY);
-//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_TOWN);
-//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_UMBEL);
-//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_CITY_OF);
-//		HashSet<QuerySolution> finalRes = executeAndIntegrateQueries(cityQueries, DBPEDIA_ENDPOINT, null, null);
-//		for(QuerySolution qs: finalRes){
-//			c++;
-//			String id = qs.getLiteral("?id").getString();
-//			String citytmp = qs.getLiteral("?citylabel").getString();
-//			//Clean city labels like "Wayanad (district)" by removing everything enclosed in brackets
-//			String citylabel = citytmp.replaceAll(parRegex,"").trim();
-//			String countrytmp = qs.getLiteral("?country").getString();
-//			String locatedIn = countrytmp.replaceAll(parRegex, "").trim();
-//			String language = qs.getLiteral("?callret-3").getString();
-//			resultStr += id + "\t" + citylabel + "\t" + locatedIn + "\t" + language + "\n";
-//		}
-//		System.out.println("\n\n == " + c + " == \n\n");
-////		System.out.println(resultStr);
-//    		try{
-//    			PrintWriter writer = new PrintWriter(new File("leipzigCorporaParser/resources/translations/cities.csv"));
-//    			writer.write(resultStr);
-//    			writer.close();
-//    		}catch(Exception e){
-//    			e.printStackTrace();
-//    		}
-//    }
     
+    /**
+     * Execute each query and integrates all the results into a HashSet
+     * @param queries SPARQL queries
+     * @param endpoint (dbpedia) endpoint
+     * @param graph graph of the endpoint or null
+     * @param model model of the endpoint or null
+     * @return finalRes HashSet containing results
+     */
     public static HashSet<QuerySolution> executeAndIntegrateQueries(List<String> queries, String endpoint, String graph, Model model){
 		HashSet<QuerySolution> finalRes = new HashSet<QuerySolution>();
     	for(String q : queries){
