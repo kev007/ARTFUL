@@ -69,7 +69,6 @@ public class Main {
             String language = FileTools.parseLanguage(fileName);
 
             String tempLang = "";
-            try {
             if(language.contains("-")){
                 tempLang = DatabaseTools.languageKeys.get(language.substring(0, language.lastIndexOf("-")));
             }else{
@@ -77,9 +76,6 @@ public class Main {
             }
             if(tempLang == null){
                 tempLang = "en";
-            }
-            } catch (Exception e) {
-
             }
 
             if(!allTranslations.containsKey(tempLang)) {
