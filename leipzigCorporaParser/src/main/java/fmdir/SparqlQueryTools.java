@@ -36,6 +36,10 @@ public class SparqlQueryTools {
 	
     
     public static void main(String[] args){
+    	if(args.length != 2){
+    		System.err.println("Usage: SparqlQueryTools <Path/to/SPARQLQueries/QueriesFile> <Path/to/output.csv>\n "
+    				+ "It is recommended to place the Queries File in leipzigCorporaParser/resources/SPARQLQueries/ \n And to put the output csv in /leipzigCorporaParser/resources/translations/");
+    	}
     	try {
 			List<String> queries = getQueriesFromFile(new File(args[0]));
 			String resultStr = getResults(queries);
