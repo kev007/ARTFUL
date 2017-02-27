@@ -68,9 +68,8 @@ public class Main {
             String year = FileTools.parseYear(fileName);
             String language = FileTools.parseLanguage(fileName);
 
-            String tempLang;
-            try {
             String tempLang = "";
+            try {
             if(language.contains("-")){
                 tempLang = DatabaseTools.languageKeys.get(language.substring(0, language.lastIndexOf("-")));
             }else{
@@ -79,10 +78,13 @@ public class Main {
             if(tempLang == null){
                 tempLang = "en";
             }
+            } catch (Exception e) {
+
+            }
 
             if(!allTranslations.containsKey(tempLang)) {
             	tempLang = "en";
-            }else{
+            } else {
                 HashMap<String, Integer> wordFreq = FileTools.importWordFrequencies(path);
 
                 ArrayList<Translation> translations = allTranslations.get(tempLang);
@@ -90,9 +92,10 @@ public class Main {
                 System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + language + " (using: " + tempLang +  "): " + wordFreq.size() + " words imported in \t\t " + (float)(System.currentTimeMillis()-parseStart)/1000 + " seconds" + ANSI_RESET);
 
                 DatabaseTools.fillDatabase(translations, wordFreq, year, language, path);
-            } else {
-//                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
             }
+//            else {
+//                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
+//            }
         }
 
         System.out.println(ANSI_CYAN + "End time: " + new Date() + ANSI_RESET);
