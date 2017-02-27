@@ -335,7 +335,7 @@ function getLanguageReferences() {
             }
         }
     }
-    freqMaxIngoing = Number.MIN_VALUE;
+    freqMaxIngoing = 0;
     freqMinIngoing = Number.MAX_VALUE;
     function transform(curr_frequency, index) {
         var country_for_corpus = getCountry(countryReferences['languages'][index]);
@@ -371,7 +371,7 @@ function getLanguageReferences() {
  */
 function getCountryReferences() {
     countryFreqsOut = {};
-    freqMaxOutgoing = Number.MIN_VALUE;
+    freqMaxOutgoing = 0;
     freqMinOutgoing = Number.MAX_VALUE;
 
     var corpus = getCorpus(selectedCountry);
@@ -390,6 +390,9 @@ function getCountryReferences() {
                     return a + b;
                 }, 0);
             }
+        }
+        if (isNaN(newFreq)) {
+            newFreq = 0;
         }
         mergedData.features[i].properties.frequency = newFreq;
         if (newFreq > freqMaxOutgoing && country.toLowerCase() !== selectedCountry.toLowerCase()) {
@@ -443,7 +446,7 @@ function httpGetAsync(url, callback) {
  * @returns {*}
  */
 function mergeCountryFreq(countries, maxCorporaSize, geoJSON, doNormalize) {
-    freqMax = Number.MIN_VALUE;
+    freqMax = 0;
     freqMin = Number.MAX_VALUE;
     function transform(element, index) {
         element.properties.frequency = 0;
@@ -607,11 +610,11 @@ function getGeoJson(country) {
  * LEGEND
  * *********************************************************************************************************************
  */
-var freqMax = Number.MIN_VALUE;
+var freqMax = 0;
 var freqMin = Number.MAX_VALUE;
-var freqMaxIngoing = Number.MIN_VALUE;
+var freqMaxIngoing = 0;
 var freqMinIngoing = Number.MAX_VALUE;
-var freqMaxOutgoing = Number.MIN_VALUE;
+var freqMaxOutgoing = 0;
 var freqMinOutgoing = Number.MAX_VALUE;
 var legend1 = 100000000;
 var legend2 = 1000000000;
