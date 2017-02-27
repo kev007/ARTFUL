@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 import configparser
-import sqlite3
 import csv
+import sqlite3
 
 config = configparser.ConfigParser()
 config.read('config.conf')
@@ -62,7 +62,7 @@ inv_mapping = {v: k for k, v in mappings.items()}
 for locatedIn in locatedIns:
     print("Inserting frequencies for " + locatedIn + "...")
     if locatedIn.lower() not in inv_mapping:
-        print("missing language for: " + locatedIn)
+        print("missing language code for: " + locatedIn)
     else:
         for year in years:
             avgOutgoingCorporaSizeQuery = "SELECT round(sum(size) * 1.0 / count(*)) FROM corpora " \
@@ -82,13 +82,21 @@ for locatedIn in locatedIns:
                 avgIngoingReferencesCorpusSize = 0
             if avgOutgoingCorporaSize is None:
                 avgOutgoingCorporaSize = 0
-            insert = "INSERT INTO `country_freq`(country, freq, year, avg_corpora_size_ingoing, " \
-                     "avg_corpora_size_outgoing)" \
-                     " SELECT located_in AS country, sum(freq) AS freq, f.year, {}, {} " \
+            corpus = inv_mapping[locatedIn.lower()]
+            ingoingReferencesQuery = "SELECT sum(freq)  AS freq_outgoing FROM freq f, translation t " \
+                                     "WHERE f.translation_id = t.id AND f.corpus = '{}' AND f.year = {}" \
+                .format(corpus, year)
+            cursor.execute(ingoingReferencesQuery)
+            ingoingReferences = cursor.fetchone()[0]
+            if ingoingReferences is None:
+                ingoingReferences = 0
+            insert = "INSERT INTO `country_freq`(country, freq_ingoing, freq_outgoing, year, " \
+                     "avg_corpora_size_ingoing, avg_corpora_size_outgoing)" \
+                     " SELECT located_in AS country, {}, sum(freq) AS freq_outgoing, f.year, {}, {} " \
                      " FROM freq f, translation t" \
                      " WHERE f.translation_id = t.id AND t.located_in = '{}' AND f.year = {};" \
-                .format(avgIngoingReferencesCorpusSize, avgOutgoingCorporaSize, locatedIn, year)
-            print(insert)
+                .format(ingoingReferences, avgIngoingReferencesCorpusSize, avgOutgoingCorporaSize, locatedIn, year)
+            # print(insert)
             cursor.execute(insert)
             connection.commit()
 connection.close()
