@@ -68,12 +68,12 @@ function initLeafletMap() {
                 grades[i] + (grades[i + 1] ? ' &ndash; ' + grades[i + 1] + '<br>' : '+');
         }
         div.innerHTML +=
-            '<br/><b style="background:#478726"></b>Selected Country<br>';
+            '<br/><b style="background:#478726"></b>Selected Country<br>'; //478726, 79a662
 
         if (useLogarithmicLegend) {
-            div.innerHTML += '<br><a href="#" id="legendTitle" onClick="handleToggleLegendMode()">Switch Mode</a>';
+            div.innerHTML += '<br><a href="#" id="legendTitle" onClick="handleToggleLegendMode()">Switch to linear</a>';
         } else {
-            div.innerHTML += '<br><a href="#" id="legendTitle" onClick="handleToggleLegendMode()">Switch Mode</a>';
+            div.innerHTML += '<br><a href="#" id="legendTitle" onClick="handleToggleLegendMode()">Switch to logarithmic</a>';
         }
 
         return div;
