@@ -434,7 +434,6 @@ function doReferenceTotals() {
         var maxCorporaSize;
         if (ingoingReferences) {
             maxCorporaSize = countryFreq['max corpora size ingoing'];
-            maxCorporaSize = 0;
         } else {
             maxCorporaSize = countryFreq['max corpora size outgoing'];
         }
@@ -486,18 +485,14 @@ function mergeCountryFreq(countries, maxCorporaSize, geoJSON, doNormalize) {
                     var averageCorporaSize;
                     var countryFrequency;
                     if (ingoingReferences) {
-                        // averageCorporaSize = country.avgCorporaSizeIngoing;
-                        averageCorporaSize = country.avgCorporaSizeOutgoing;
+                        averageCorporaSize = country.avgCorporaSizeIngoing;
                         if(averageCorporaSize == 0) {
                             averageCorporaSize = 10000;
                         }
-                        countryFrequency = country.frequency;
-                        // countryFrequency = country.frequencyIngoing;
+                        countryFrequency = country['ingoing frequency'];
                     } else {
-                        // averageCorporaSize = country.avgCorporaSizeOutgoing;
-                        averageCorporaSize = country.avgCorporaSizeIngoing;
-                        countryFrequency = country.frequency;
-                        // countryFrequency = country.frequencyOutgoing;
+                        averageCorporaSize = country.avgCorporaSizeOutgoing;
+                        countryFrequency = country['outgoing frequency'];
                         if(averageCorporaSize == 0) {
                             averageCorporaSize = 10000;
                         }
