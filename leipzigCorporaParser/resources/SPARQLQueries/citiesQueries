@@ -1,0 +1,63 @@
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+PREFIX umbel: <http://umbel.org/umbel/rc/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbp: <http://dbpedia.org/property/>
+SELECT DISTINCT ?id ?entitylabel ?country lang(?entitylabel)
+WHERE { ?city rdf:type dbo:Settlement ; rdfs:label ?entitylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}ORDER BY ?city LIMIT 10000 OFFSET 0 
+
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+PREFIX umbel: <http://umbel.org/umbel/rc/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbp: <http://dbpedia.org/property/>
+SELECT DISTINCT ?id ?entitylabel ?country lang(?entitylabel)
+WHERE { ?city rdf:type dbo:Settlement ; rdfs:label ?entitylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}ORDER BY ?city LIMIT 10000 OFFSET 10000 
+
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+PREFIX umbel: <http://umbel.org/umbel/rc/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbp: <http://dbpedia.org/property/>
+SELECT DISTINCT ?id ?entitylabel ?country lang(?entitylabel)
+WHERE { ?city rdf:type dbo:Settlement ; rdfs:label ?entitylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}ORDER BY ?city LIMIT 10000 OFFSET 20000 
+
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+PREFIX umbel: <http://umbel.org/umbel/rc/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbp: <http://dbpedia.org/property/>
+SELECT DISTINCT ?id ?entitylabel ?country lang(?entitylabel)
+WHERE { ?city rdf:type dbo:City ; rdfs:label ?entitylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')} 
+
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+PREFIX umbel: <http://umbel.org/umbel/rc/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbp: <http://dbpedia.org/property/>
+SELECT DISTINCT ?id ?entitylabel ?country lang(?entitylabel)
+WHERE { ?city rdf:type dbo:Town ; rdfs:label ?entitylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')} 
+
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+PREFIX umbel: <http://umbel.org/umbel/rc/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbp: <http://dbpedia.org/property/>
+SELECT DISTINCT ?id ?entitylabel ?country lang(?entitylabel)
+WHERE { ?city rdf:type umbel:City ; rdfs:label ?entitylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')} 
+
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+PREFIX umbel: <http://umbel.org/umbel/rc/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbp: <http://dbpedia.org/property/>
+SELECT DISTINCT ?id ?entitylabel ?country lang(?entitylabel)
+WHERE{ ?city dbo:country	?locatedIn ; rdfs:label  ?entitylabel ; dbp:areaKm  ?area ; dbo:wikiPageID  ?id . ?locatedIn rdfs:label ?country . ?x     dbo:city          ?city . FILTER(lang(?country)='en') FILTER(?area >= 100) }ORDER BY ?city
+    

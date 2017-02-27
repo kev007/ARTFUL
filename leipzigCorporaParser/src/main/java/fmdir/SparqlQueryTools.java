@@ -1,7 +1,14 @@
 package main.java.fmdir;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -13,7 +20,6 @@ import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
-import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 
@@ -26,106 +32,148 @@ import org.apache.jena.rdf.model.Model;
 public class SparqlQueryTools {
 
 	public static final String parRegex = "\\(([^)]+)\\)";
-    public static final String DBPEDIA_ENDPOINT = "http://dbpedia.org/sparql";
-    public static final String GET_ALL_CITIES_QUERY_HEAD = "PREFIX dbo: <http://dbpedia.org/ontology/>"
-    												+ "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
-    												+ "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
-    												+ "PREFIX umbel: <http://umbel.org/umbel/rc/>"
-                                                    + "PREFIX dbr: <http://dbpedia.org/resource/>"
-                                                    + "PREFIX dbp: <http://dbpedia.org/property/>"
-    												+ "SELECT DISTINCT ?id ?citylabel ?country lang(?citylabel)";
-//    												+ "SELECT DISTINCT ?city"
-//    public static final String GET_ALL_CITIES_POP_PLACE = "WHERE { ?city rdf:type dbo:PopulatedPlace ; rdfs:label ?citylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}"; 
-
-    //Gets all settlements fo dbpedia and uses paging to get all results
-    public static final String GET_ALL_CITIES_SETTLEMENT_1 = "WHERE { ?city rdf:type dbo:Settlement ; rdfs:label ?citylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}ORDER BY ?city LIMIT 10000 OFFSET 0"; 
-    public static final String GET_ALL_CITIES_SETTLEMENT_2 = "WHERE { ?city rdf:type dbo:Settlement ; rdfs:label ?citylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}ORDER BY ?city LIMIT 10000 OFFSET 10000"; 
-    public static final String GET_ALL_CITIES_SETTLEMENT_3 = "WHERE { ?city rdf:type dbo:Settlement ; rdfs:label ?citylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}ORDER BY ?city LIMIT 10000 OFFSET 20000"; 
-    public static final String GET_ALL_CITIES_CITY = "WHERE { ?city rdf:type dbo:City ; rdfs:label ?citylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}"; 
-    public static final String GET_ALL_CITIES_TOWN = "WHERE { ?city rdf:type dbo:Town ; rdfs:label ?citylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}"; 
-    public static final String GET_ALL_CITIES_UMBEL = "WHERE { ?city rdf:type umbel:City ; rdfs:label ?citylabel ; dbo:country ?locatedIn ; dbo:populationTotal  ?population ; dbo:wikiPageID ?id . ?locatedIn rdfs:label ?country . FILTER (?population >= 500000 ) FILTER (lang(?country)='en')}"; 
-//    												+ "WHERE { ?city rdf:type dbo:City .}"; 
-    public static final String GET_ALL_CITIES_CITY_OF = "WHERE{ ?city dbo:country	?locatedIn ; rdfs:label  ?citylabel ; dbp:areaKm  ?area ; dbo:wikiPageID  ?id . ?locatedIn rdfs:label ?country . ?x     dbo:city          ?city . FILTER(lang(?country)='en') FILTER(?area >= 100) }ORDER BY ?city";
-    
-    
-    public static final String GET_POLITICIANS_QUERY = "PREFIX dbo: <http://dbpedia.org/ontology/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT DISTINCT ?id ?leadername ?countrylabel lang(?leadername) WHERE { ?country dbo:leader ?leader ; rdfs:label ?countrylabel . ?x dbo:country ?country . ?leader dbo:wikiPageID ?id ; rdfs:label ?leadername .  FILTER (lang(?countrylabel)='en')    }ORDER BY ?leadername";
+	public static final String DBPEDIA_ENDPOINT = "http://dbpedia.org/sparql";
+	
     
     public static void main(String[] args){
-    	getPoliticianData();
+    	try {
+			List<String> queries = getQueriesFromFile(new File(args[0]));
+			String resultStr = getResults(queries);
+			writeToFile(new File(args[1]), resultStr);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
     
-    public static void getPoliticianData(){
+    public static String getResults(List<String> queries){
     	String resultStr = "";
 		int c = 0;
-		HashSet<QuerySolution> finalRes = new HashSet<QuerySolution>();
-		ResultSet results = querySelect(GET_POLITICIANS_QUERY, DBPEDIA_ENDPOINT, null, null);
-		while(results.hasNext()){
-			finalRes.add(results.next());
-		}
+		HashSet<QuerySolution> finalRes = executeAndIntegrateQueries(queries, DBPEDIA_ENDPOINT, null, null);
+		System.out.println("Parsing results to .csv format");
 		for(QuerySolution qs: finalRes){
 			c++;
 			String id = qs.getLiteral("?id").getString();
-			String leadertmp = qs.getLiteral("?leadername").getString();
-			//Clean city labels like "Wayanad (district)" by removing everything enclosed in brackets
-			String leaderlabel = leadertmp.replaceAll(parRegex,"").trim();
-			String countrytmp = qs.getLiteral("?countrylabel").getString();
-			String country = countrytmp.replaceAll(parRegex, "").trim();
-			String language = qs.getLiteral("?callret-3").getString();
-			resultStr += id + "\t" + leaderlabel + "\t" + country + "\t" + language + "\n";
-		}
-		System.out.println("\n\n == " + c + " == \n\n");
-//		System.out.println(resultStr);
-    		try{
-    			PrintWriter writer = new PrintWriter(new File("leipzigCorporaParser/resources/translations/politicians.csv"));
-    			writer.write(resultStr);
-    			writer.close();
-    		}catch(Exception e){
-    			e.printStackTrace();
-    		}
-    }
-    
-    public static void getCityData(){
-    	String resultStr = "";
-		int c = 0;
-		List<String> cityQueries = new ArrayList<String>();
-		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_SETTLEMENT_1);
-		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_SETTLEMENT_2);
-		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_SETTLEMENT_3);
-		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_CITY);
-		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_TOWN);
-		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_UMBEL);
-		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_CITY_OF);
-		HashSet<QuerySolution> finalRes = executeAndIntegrateQueries(cityQueries, DBPEDIA_ENDPOINT, null, null);
-		for(QuerySolution qs: finalRes){
-			c++;
-			String id = qs.getLiteral("?id").getString();
-			String citytmp = qs.getLiteral("?citylabel").getString();
-			//Clean city labels like "Wayanad (district)" by removing everything enclosed in brackets
+			String citytmp = qs.getLiteral("?entitylabel").getString();
+			//Clean abels like "Wayanad (district)" by removing everything enclosed in brackets
 			String citylabel = citytmp.replaceAll(parRegex,"").trim();
 			String countrytmp = qs.getLiteral("?country").getString();
 			String locatedIn = countrytmp.replaceAll(parRegex, "").trim();
 			String language = qs.getLiteral("?callret-3").getString();
 			resultStr += id + "\t" + citylabel + "\t" + locatedIn + "\t" + language + "\n";
 		}
-		System.out.println("\n\n == " + c + " == \n\n");
-//		System.out.println(resultStr);
-    		try{
-    			PrintWriter writer = new PrintWriter(new File("leipzigCorporaParser/resources/translations/cities.csv"));
-    			writer.write(resultStr);
-    			writer.close();
-    		}catch(Exception e){
-    			e.printStackTrace();
-    		}
+		System.out.println("\n\n == Final Result: " + c + " lines == \n\n");
+		return resultStr;
     }
+    
+    public static List<String> getQueriesFromFile(File queriesFile) throws IOException{
+        InputStream fis = new FileInputStream(queriesFile);
+        InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
+        BufferedReader br = new BufferedReader(isr);
+        String line, currentQuery = "";
+       	List<String> queries = new ArrayList<String>();
+        while((line = br.readLine()) != null ){
+        	//if line is empty a new query begins
+        	if(line.trim().isEmpty()){
+        		if(!currentQuery.toUpperCase().contains("SELECT DISTINCT ?ID ?ENTITYLABEL ?COUNTRY LANG(?ENTITYLABEL)")){
+        			System.err.println("=== FATAL ERROR === \nQuery has to contain the select statement:\n SELECT DISTINCT ?ID ?ENTITYLABEL ?COUNTRY LANG(?ENTITYLABEL)");
+        			System.exit(0);
+        		}
+        		queries.add(currentQuery);
+        		currentQuery = "";
+        	}
+        	currentQuery += "\n" + line;
+        }
+        fis.close();
+        isr.close();
+        br.close();
+    	return queries;
+    }
+    
+    public static void writeToFile(File outputFile, String resultStr) throws FileNotFoundException{
+    	System.out.println("Writing results to "+outputFile.getAbsolutePath());
+    	PrintWriter writer = new PrintWriter(outputFile);
+    	writer.write(resultStr);
+    	writer.close();
+    	System.out.println("Finished successfully");
+    }
+    
+//    public static void getPoliticianData(){
+//    	String resultStr = "";
+//		int c = 0;
+//		HashSet<QuerySolution> finalRes = new HashSet<QuerySolution>();
+//		ResultSet results = querySelect(GET_POLITICIANS_QUERY, DBPEDIA_ENDPOINT, null, null);
+//		while(results.hasNext()){
+//			finalRes.add(results.next());
+//		}
+//		for(QuerySolution qs: finalRes){
+//			c++;
+//			String id = qs.getLiteral("?id").getString();
+//			String leadertmp = qs.getLiteral("?leadername").getString();
+//			//Clean city labels like "Wayanad (district)" by removing everything enclosed in brackets
+//			String leaderlabel = leadertmp.replaceAll(parRegex,"").trim();
+//			String countrytmp = qs.getLiteral("?countrylabel").getString();
+//			String country = countrytmp.replaceAll(parRegex, "").trim();
+//			String language = qs.getLiteral("?callret-3").getString();
+//			resultStr += id + "\t" + leaderlabel + "\t" + country + "\t" + language + "\n";
+//		}
+//		System.out.println("\n\n == " + c + " == \n\n");
+////		System.out.println(resultStr);
+//    		try{
+//    			PrintWriter writer = new PrintWriter(new File("leipzigCorporaParser/resources/translations/politicians.csv"));
+//    			writer.write(resultStr);
+//    			writer.close();
+//    		}catch(Exception e){
+//    			e.printStackTrace();
+//    		}
+//    }
+//    
+//    public static void getCityData(){
+//    	String resultStr = "";
+//		int c = 0;
+//		List<String> cityQueries = new ArrayList<String>();
+//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_SETTLEMENT_1);
+//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_SETTLEMENT_2);
+//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_SETTLEMENT_3);
+//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_CITY);
+//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_TOWN);
+//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_UMBEL);
+//		cityQueries.add(GET_ALL_CITIES_QUERY_HEAD + GET_ALL_CITIES_CITY_OF);
+//		HashSet<QuerySolution> finalRes = executeAndIntegrateQueries(cityQueries, DBPEDIA_ENDPOINT, null, null);
+//		for(QuerySolution qs: finalRes){
+//			c++;
+//			String id = qs.getLiteral("?id").getString();
+//			String citytmp = qs.getLiteral("?citylabel").getString();
+//			//Clean city labels like "Wayanad (district)" by removing everything enclosed in brackets
+//			String citylabel = citytmp.replaceAll(parRegex,"").trim();
+//			String countrytmp = qs.getLiteral("?country").getString();
+//			String locatedIn = countrytmp.replaceAll(parRegex, "").trim();
+//			String language = qs.getLiteral("?callret-3").getString();
+//			resultStr += id + "\t" + citylabel + "\t" + locatedIn + "\t" + language + "\n";
+//		}
+//		System.out.println("\n\n == " + c + " == \n\n");
+////		System.out.println(resultStr);
+//    		try{
+//    			PrintWriter writer = new PrintWriter(new File("leipzigCorporaParser/resources/translations/cities.csv"));
+//    			writer.write(resultStr);
+//    			writer.close();
+//    		}catch(Exception e){
+//    			e.printStackTrace();
+//    		}
+//    }
     
     public static HashSet<QuerySolution> executeAndIntegrateQueries(List<String> queries, String endpoint, String graph, Model model){
 		HashSet<QuerySolution> finalRes = new HashSet<QuerySolution>();
     	for(String q : queries){
+    		System.out.println("Running query: " + q);
             ResultSet results = querySelect(q, endpoint, graph, model);
+            int count = 0;
             while(results.hasNext()){
+            	count ++;
                 finalRes.add(results.next());
             }
+            System.out.println("Retrieved " + count + "results");
     	}
+    	
     	return finalRes;
     }
 
