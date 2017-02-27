@@ -1,3 +1,6 @@
+/**
+ * IMPORTANT VARIABLES
+ */
 var geojson;
 var selectedGeojson;
 var map;
@@ -11,6 +14,19 @@ var countryFreqsIn = {};
 var maxCorporaSize = 0;
 var countryFreqSum = 0;
 var countryFreq;
+var startYear = 1995;
+var endYear = new Date().getFullYear();
+var numOfYears;
+
+var instantSlider = true; //change to false to reduce the number of request to the server
+var verboseLogging = true;
+var useLogarithmicLegend = false;
+
+/**
+ * *********************************************************************************************************************
+ * LEAFLET
+ * *********************************************************************************************************************
+ */
 function initLeafletMap() {
     map = L.map('mapid').setView([51.505, -0.09], 3);
 
@@ -22,14 +38,9 @@ function initLeafletMap() {
         id: 'mapbox.light'
     }).addTo(map);
 
-    $(document).ready(function () {
-        $("#slider-range").slider({});
-    });
-
     legend = L.control({position: 'bottomright'});
 
-    legend.onAdd = function (map) {
-
+    legend.onAdd = function () {
         var div = L.DomUtil.create('div', 'info legend'),
             grades = [
                 numberWithCommas(legend1),
@@ -43,7 +54,12 @@ function initLeafletMap() {
                 numberWithCommas(legend9),
                 numberWithCommas(legend10)
             ];
-        div.innerHTML += '<h3>Legend</h3>';
+        if (useLogarithmicLegend) {
+            div.innerHTML += '<h3>Legend <span class="ui-icon ui-icon-arrowreturnthick-1-n"></span>Logarithmic </h3>';
+        } else {
+            div.innerHTML += '<h3>Legend <span class="ui-icon ui-icon-arrowthick-1-ne"></span>Linear </h3>';
+        }
+
 
         // loop through our density intervals and generate a label with a colored square for each interval
         for (var i = 0; i < grades.length; i++) {
@@ -54,6 +70,12 @@ function initLeafletMap() {
         div.innerHTML +=
             '<br/><b style="background:#478726"></b>Selected Country<br>';
 
+        if (useLogarithmicLegend) {
+            div.innerHTML += '<br><a href="#" id="legendTitle" onClick="handleToggleLegendMode()">Switch Mode</a>';
+        } else {
+            div.innerHTML += '<br><a href="#" id="legendTitle" onClick="handleToggleLegendMode()">Switch Mode</a>';
+        }
+
         return div;
     };
 
@@ -61,7 +83,7 @@ function initLeafletMap() {
 
     info = L.control();
 
-    info.onAdd = function (map) {
+    info.onAdd = function () {
         this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
         this.update();
         return this._div;
@@ -70,8 +92,6 @@ function initLeafletMap() {
     // method that we will use to update the control based on feature properties passed
     info.update = function (props) {
         if (props) {
-            document.getElementById('selectedCountry').textContent = selectedCountry;
-            document.getElementById('hoverCountry').textContent = props.name;
             var currCountryFreq;
             var selectedReferences;
             var totalCountryReferencesSelected = 0;
@@ -94,6 +114,8 @@ function initLeafletMap() {
                 totalCountryReferencesSelected = countryFreqSum;
             }
 
+            document.getElementById('selectedCountry').textContent = selectedCountry;
+            document.getElementById('hoverCountry').textContent = props.name;
             document.getElementById('hoverFreq').innerHTML = currCountryFreq ? numberWithCommas(currCountryFreq)
                 + " (" + ((currCountryFreq / totalCountryReferencesSelected) * 100)
                     .toFixed(2) + "&#37;) "
@@ -109,125 +131,299 @@ function initLeafletMap() {
             document.getElementById('hoverCountry').style.display='none';
             document.getElementById('hoverFreq').style.display='none';
         }
-        if (selectedCountry != "") {
-            document.getElementById('selectedCountry').style.display='table-cell';
-            document.getElementById('arrow').style.display='inline-block';
-        } else {
-            document.getElementById('selectedCountry').style.display='none';
-            document.getElementById('arrow').style.display='none';
-        }
-
-        // this._div.innerHTML = '' +
-        //     '<h2>Interactive Country Reference Frequency Choropleth Map</h2>' +
-        //     '<h3>Number of references: ' +  (props ? '<b>' + props.name + '</b></h3>' + numberWithCommas(props.frequency) : '<i>none selected</i>');
     };
     info.addTo(map);
 }
 
-var freqMax = Number.MIN_VALUE;
-var freqMin = Number.MAX_VALUE;
-var freqMaxIngoing = Number.MIN_VALUE;
-var freqMinIngoing = Number.MAX_VALUE;
-var freqMaxOutgoing = Number.MIN_VALUE;
-var freqMinOutgoing = Number.MAX_VALUE;
-var legend1 = 100000000;
-var legend2 = 1000000000;
-var legend3 = 2500000000;
-var legend4 = 5000000000;
-var legend5 = 10000000000;
-var legend6 = 20000000000;
-var legend7 = 30000000000;
-var legend8 = 40000000000;
-var legend9 = 50000000000;
-var legend10 = 60000000000;
-var legendCount = 11;
+function onEachFeature(feature, layer) {
+    layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: handleCountrySelect
+    });
+}
+var layer;
+function highlightFeature(e) {
+    layer = e.target;
 
-function calculateLegend() {
-    var curr_min;
-    var curr_max;
+    layer.setStyle({
+        weight: 5,
+        color: '#666',
+        dashArray: '',
+        fillOpacity: 0.7
+    });
+
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+    }
+
+    info.update(layer.feature.properties);
+}
+function resetHighlight(e) {
+    geojson.resetStyle(e.target);
+    if (selectedCountry) {
+        colorCountry(selectedCountry);
+    }
+
+    info.update();
+}
+function colorCountry(country) {
+    if (selectedGeojson) {
+        map.removeLayer(selectedGeojson);
+    }
+    selectedGeojson = L.geoJson(getGeoJson(country), {
+        style: styleSelectedCountry,
+        onEachFeature: onEachFeature
+    }).addTo(map);
+}
+
+/**
+ * *********************************************************************************************************************
+ * SLIDER
+ * *********************************************************************************************************************
+ */
+$(function () {
+    var handleLeft = $( "#custom-handle" );
+    var handleRight = $( "#custom-handle2" );
+    var slider = $("#slider-range");
+    slider.slider({
+        range: true,
+        min: startYear,
+        max: endYear,
+        values: [startYear, endYear],
+        create: function () {
+            handleLeft.text(startYear);
+            handleRight.text(endYear);
+
+            handleYearChange(startYear, endYear);
+        },
+        slide: function (event, ui) {
+            handleLeft.text(ui.values[0]);
+            handleRight.text(ui.values[1]);
+            $("#year").val(ui.values[0] + " - " + ui.values[1]);
+
+            if(instantSlider) {
+                handleYearChange(ui.values[0], ui.values[1]);
+            }
+        },
+        change: function (event, ui) {
+            if(!instantSlider) {
+                handleYearChange(ui.values[0], ui.values[1]);
+            }
+        }
+    });
+    $("#year").val(slider.slider("values", 0) +
+        " - " + slider.slider("values", 1));
+});
+
+
+/**
+ * *********************************************************************************************************************
+ * LOGIC
+ * *********************************************************************************************************************
+ */
+
+/**
+ * ***********************************************************
+ * HANDLE USER INPUTS
+ * ***********************************************************
+ */
+
+/**
+ * When the user changes the year:
+ *
+ * @param start
+ * @param end
+ */
+function handleYearChange(start, end) {
+    startYear = start;
+    endYear = end;
+    numOfYears = end - start + 1; //+1 for inclusive year e.g. 2015 to 2015 should include 2015 i.e. 1 year
+
+    if (selectedCountry) {
+        //case: a country is selected, year changed
+        doDirectionalCountryReferences();
+    } else {
+        //case: no country selected, year changed
+        doReferenceTotals();
+    }
+}
+
+/**
+ * When the user flips the reference direction arrow:
+ *
+ */
+function handleToggleReferences() {
+    ingoingReferences = !ingoingReferences;
+
+    doDirectionalCountryReferences();
+}
+
+/**
+ * When the user flips the reference direction arrow:
+ *
+ */
+function handleToggleLegendMode() {
+    useLogarithmicLegend = !useLogarithmicLegend;
+
+    updateGUI();
+}
+
+/**
+ * When the user clicks on a country:
+ * 1. If a country is not selected, select it
+ * 2. If the user clicks on a selected country, deselect it
+ * 3. If a country is selected and the user selects a different country, select the different country instead
+ *
+ * @param clickObject
+ */
+function handleCountrySelect(clickObject) {
+    if (selectedCountry) { //case: country is selected
+        if (selectedCountry.toLowerCase() === clickObject.target.feature.properties.name.toLowerCase()) { //case: selected country is reselected
+            selectedCountry = ""; //deselect the country
+            doReferenceTotals(); //display all references (non-directional, total references)
+        } else {  //case: different country is selected
+            selectedCountry = clickObject.target.feature.properties.name; //select a different country
+            doDirectionalCountryReferences();
+        }
+    } else { //case: country is not selected
+        selectedCountry = clickObject.target.feature.properties.name; //select a country
+        doDirectionalCountryReferences();
+    }
+}
+
+
+/**
+ * ***********************************************************
+ * HANDLE DATA LOGIC
+ * ***********************************************************
+ */
+/**
+ * Decides which direction the reference is, executes corresponding calculation
+ */
+function doDirectionalCountryReferences() {
     if (selectedCountry) {
         if (ingoingReferences) {
-            curr_min = freqMinIngoing;
-            curr_max = freqMaxIngoing;
+            getLanguageReferences();
+            if (verboseLogging) console.log(selectedCountry + ': Ingoing References: ' + startYear + '-' + endYear);
         } else {
-            curr_min = freqMinOutgoing;
-            curr_max = freqMaxOutgoing;
+            getCountryReferences();
+            if (verboseLogging) console.log(selectedCountry + ': Outgoing References: ' + startYear + '-' + endYear);
         }
     } else {
-        curr_min = freqMin;
-        curr_max = freqMax;
+        if (verboseLogging) console.log("getCountryReferenceState: something broke or this function was called incorrectly")
     }
-    var range = curr_max - curr_min;
-    var step = range / legendCount;
-    var significantFigures = 2;
-    // step = sigFigs(step, 2);
-    // freqMin = sigFigs(freqMin, 3);
-    // freqMax = sigFigs(freqMax, 3);
-
-    legend1 = parseInt(sigFigs(curr_min, significantFigures + 1)) || 0;
-    legend2 = parseInt(sigFigs(curr_min + (step), significantFigures)) || 0;
-    legend3 = parseInt(sigFigs(curr_min + (2 * step), significantFigures)) || 0;
-    legend4 = parseInt(sigFigs(curr_min + (3 * step), significantFigures)) || 0;
-    legend5 = parseInt(sigFigs(curr_min + (4 * step), significantFigures)) || 0;
-    legend6 = parseInt(sigFigs(curr_min + (5 * step), significantFigures)) || 0;
-    legend7 = parseInt(sigFigs(curr_min + (6 * step), significantFigures)) || 0;
-    legend8 = parseInt(sigFigs(curr_min + (7 * step), significantFigures)) || 0;
-    legend9 = parseInt(sigFigs(curr_min + (8 * step), significantFigures)) || 0;
-    legend10 = parseInt(sigFigs(curr_max, significantFigures)) || 0;
+    updateGUI();
 }
 
-function sigFigs(n, sig) {
-    var mult = Math.pow(10, sig - Math.floor(Math.log(n) / Math.LN10) - 1);
-    // return Math.round(n * mult) / mult;
-    return Math.floor(n * mult) / mult;
-}
+/**
+ * Read all ingoing references. do stuff
+ * @returns {Array}
+ */
+function getLanguageReferences() {
+    countryFreqsIn = {};
 
-// http://colorbrewer2.org/#type=sequential&scheme=YlOrRd&n=9
-function getColor(d) {
-    return d > legend10 ? '#57000f' :
-            d > legend9 ? '#800026' :
-            d > legend8 ? '#bd0026' :
-            d > legend7 ? '#e31a1c' :
-            d > legend6 ? '#fc4e2a' :
-            d > legend5 ? '#fd8d3c' :
-            d > legend4 ? '#feb24c' :
-            d > legend3 ? '#fed976' :
-            d > legend2 ? '#ffeda0' :
-            d > legend1 ? '#ffffcc' :
-                          '#ffffff';
-}
+    var length = countryReferences["languages"].length;
+    var data = new Array(length).fill(0);
 
-function numberWithCommas(x) {
-    if (x) {
-        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    var references = [];
+
+    for (var y = 0; y < numOfYears; y++) {
+        if (countryReferences.hasOwnProperty(startYear + y) && countryReferences[startYear + y].hasOwnProperty(selectedCountry)) {
+            for (var c = 0; c < countryReferences[startYear + y][selectedCountry].length; c++) {
+                data[c] += countryReferences[startYear + y][selectedCountry][c];
+            }
+        }
     }
-    else {
-        return '0'
+    freqMaxIngoing = Number.MIN_VALUE;
+    freqMinIngoing = Number.MAX_VALUE;
+    function transform(curr_frequency, index) {
+        var country_for_corpus = getCountry(countryReferences['languages'][index]);
+        if (country_for_corpus) {
+            var avgCorpusSizesSum = 0;
+            var corpus = countryReferences['languages'][index];
+            for (var y = startYear; y < startYear + numOfYears; y++) {
+                if (!isNaN(avgCorpusSizes['corpora'][corpus]['average corpus size'][y])) {
+                    avgCorpusSizesSum += avgCorpusSizes['corpora'][corpus]['average corpus size'][y]
+                }
+            }
+            if (curr_frequency > freqMaxIngoing && country_for_corpus.toLowerCase() !== selectedCountry.toLowerCase()) {
+                freqMaxIngoing = curr_frequency;
+            }
+            if (curr_frequency < freqMinIngoing && country_for_corpus.toLowerCase() !== selectedCountry.toLowerCase()) {
+                freqMinIngoing = curr_frequency;
+            }
+            references.push({
+                'name': country_for_corpus,
+                'frequency': curr_frequency,
+                'avgCorporaSize': Math.ceil(avgCorpusSizesSum / numOfYears)
+            });
+            countryFreqsIn[country_for_corpus] = curr_frequency;
+        }
+    }
+    data.forEach(transform);
+    mergedData = mergeCountryFreq(references, maxCorporaSize, countryData, false);
+    return references;
+}
+
+/**
+ * Read all outgoing references. do stuff.
+ */
+function getCountryReferences() {
+    countryFreqsOut = {};
+    freqMaxOutgoing = Number.MIN_VALUE;
+    freqMinOutgoing = Number.MAX_VALUE;
+
+    var corpus = getCorpus(selectedCountry);
+    var langIndex = countryReferences.languages.indexOf(corpus);
+
+    for (var i = 0; i < mergedData.features.length; i++) {
+        var countryReferencesSum = 0;
+        var country = mergedData.features[i].properties.name;
+        var newFreq = 0;
+
+        for (var y = 0; y < numOfYears; y++) {
+            if (countryReferences.hasOwnProperty(startYear + y) && countryReferences[startYear + y].hasOwnProperty(country)) {
+                var currCountryYearReferences = countryReferences[startYear + y][country];
+                newFreq += currCountryYearReferences[langIndex];
+                countryReferencesSum += currCountryYearReferences.reduce(function (a, b) {
+                    return a + b;
+                }, 0);
+            }
+        }
+        mergedData.features[i].properties.frequency = newFreq;
+        if (newFreq > freqMaxOutgoing && country.toLowerCase() !== selectedCountry.toLowerCase()) {
+            freqMaxOutgoing = newFreq;
+        }
+        if (newFreq < freqMinOutgoing && country.toLowerCase() !== selectedCountry.toLowerCase()) {
+            freqMinOutgoing = newFreq;
+        }
+        countryFreqsOut[country] = newFreq;
     }
 }
 
-function style(feature) {
-    return {
-        fillColor: getColor(feature.properties.frequency),
-        weight: 2,
-        opacity: 1,
-        color: 'white',
-        dashArray: '3',
-        fillOpacity: 0.7
-    };
+/**
+ * Gets all country reference frequencies (non-directional, total references) from the REST API.
+ * @param start
+ * @param end
+ */
+function doReferenceTotals() {
+    if (verboseLogging) console.log(selectedCountry + 'All Countries: ' + startYear + '-' + endYear);
+
+    httpGetAsync('freqs?start=' + startYear + '&end=' + endYear, function (response) {
+        countryFreq = JSON.parse(response);
+        maxCorporaSize = countryFreq['max corpora size'];
+        mergedData = mergeCountryFreq(countryFreq['countries'], maxCorporaSize, countryData, true);
+
+        updateGUI();
+    });
 }
 
-function styleSelectedCountry(feature) {
-    return {
-        fillColor: '#478726',
-        weight: 2,
-        opacity: 1,
-        color: 'white',
-        dashArray: '3',
-        fillOpacity: 0.7
-    };
-}
-
+/**
+ * Asynchronous HTTP GET to the API provided by the server at 'url'
+ * @param url
+ * @param callback
+ */
 function httpGetAsync(url, callback) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
@@ -238,6 +434,14 @@ function httpGetAsync(url, callback) {
     xmlHttp.send();
 }
 
+/**
+ * merges data sets
+ * @param countries
+ * @param maxCorporaSize
+ * @param geoJSON
+ * @param doNormalize
+ * @returns {*}
+ */
 function mergeCountryFreq(countries, maxCorporaSize, geoJSON, doNormalize) {
     freqMax = Number.MIN_VALUE;
     freqMin = Number.MAX_VALUE;
@@ -286,111 +490,22 @@ function mergeCountryFreq(countries, maxCorporaSize, geoJSON, doNormalize) {
     return mergedData;
 }
 
-var layer;
-function highlightFeature(e) {
-    layer = e.target;
-
-    layer.setStyle({
-        weight: 5,
-        color: '#666',
-        dashArray: '',
-        fillOpacity: 0.7
-    });
-
-    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-        layer.bringToFront();
-    }
-
-    info.update(layer.feature.properties);
-}
-
-function colorCountry(country) {
-    if (selectedGeojson) {
-        map.removeLayer(selectedGeojson);
-    }
-    selectedGeojson = L.geoJson(getGeoJson(country), {
-        style: styleSelectedCountry,
-        onEachFeature: onEachFeature
-    }).addTo(map);
-}
-function resetHighlight(e) {
-    geojson.resetStyle(e.target);
-    if (selectedCountry) {
-        colorCountry(selectedCountry);
-    }
-
-    info.update();
-}
-
-
-function onEachFeature(feature, layer) {
-    layer.on({
-        mouseover: highlightFeature,
-        mouseout: resetHighlight,
-        click: proceedCountryReferences
-    });
-}
-
-function removeCustomLayer() {
+/**
+ * Function responsible for refreshing all GUI elements:
+ * 1. Leaflet custom layer
+ * 2. Legend
+ * 3. Frequency readout (except hover info, see leaflet info.update())
+ * 4. Reference direction arrow
+ */
+function updateGUI() {
+    //remove custom layer
     if (geojson) {
         map.removeLayer(geojson);
     }
     if (selectedGeojson) {
         map.removeLayer(selectedGeojson);
     }
-}
 
-function proceedCountryReferences(clickObject) {
-    removeCustomLayer();
-    if (selectedCountry && selectedCountry.toLowerCase() === clickObject.target.feature.properties.name.toLowerCase()) {
-        selectedCountry = '';
-        var beginYear = $('#slider-range').slider("values", 0);
-        var endYear = $('#slider-range').slider("values", 1);
-        getFreqs(beginYear, endYear, function () {
-            addGeoJsonMap(mergedData, map);
-        });
-    } else {
-        selectedCountry = clickObject.target.feature.properties.name;
-    }
-    fillCountryReferences(selectedCountry);
-}
-
-function fillCountryReferences(name) {
-    if (name == '') {
-        console.log('No country selected')
-    } else {
-        console.log(name);
-        if (ingoingReferences) {
-            getLanguageReferences(name);
-            console.log('1');
-        } else {
-            getCountryReferences(name);
-            console.log('2');
-        }
-    }
-    calculateLegend();
-    legend.addTo(map);
-
-    removeCustomLayer();
-    addGeoJsonMap(mergedData, map, selectedCountry);
-    colorCountry(selectedCountry);
-    info.update();
-}
-
-function calcWeightedFrequencies () {
-    //TODO: calculation
-
-    mergedData.features[i].properties.corporaSize = newSize;
-    if (newSize > freqMax && country.toLowerCase() !== selectedCountry.toLowerCase()) {
-        sizeMax = newSize;
-    }
-    if (newSize < freqMin && country.toLowerCase() !== selectedCountry.toLowerCase()) {
-        sizeMin = newSize;
-    }
-}
-
-function toggleReferences() {
-    ingoingReferences = !ingoingReferences;
     var arrow = document.getElementById('arrow');
     var arrowText = document.getElementById('arrowText');
 
@@ -404,8 +519,72 @@ function toggleReferences() {
         arrowText.textContent = "Ingoing References";
     }
 
-    fillCountryReferences(selectedCountry);
+    if (selectedCountry) {
+        document.getElementById('selectedCountry').style.display='table-cell';
+        document.getElementById('arrow').style.display='inline-block';
+    } else {
+        document.getElementById('selectedCountry').style.display='none';
+        document.getElementById('arrow').style.display='none';
+    }
+
+    calculateLegend();
+    legend.addTo(map);
+
+    if (selectedCountry) {
+        colorCountry(selectedCountry);
+        addGeoJsonMap(mergedData, map, selectedCountry);
+    } else {
+        addGeoJsonMap(mergedData, map);
+    }
 }
+
+function addGeoJsonMap(data, map, filterCountry) {
+    if (!filterCountry) {
+        filterCountry  = "";
+    }
+
+    geojson = L.geoJson(data, {
+        style: style,
+        onEachFeature: onEachFeature,
+        filter: function (feature, layer) {
+            return feature.properties.name.toLowerCase() !== filterCountry.toLowerCase();
+        }
+    }).addTo(map);
+}
+
+
+function numberWithCommas(x) {
+    if (x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    else {
+        return '0'
+    }
+}
+
+function style(feature) {
+    return {
+        fillColor: getColor(feature.properties.frequency),
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        dashArray: '3',
+        fillOpacity: 0.7
+    };
+}
+
+function styleSelectedCountry(feature) {
+    return {
+        fillColor: '#478726',
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        dashArray: '3',
+        fillOpacity: 0.7
+    };
+}
+
+
 
 function getCorpus(country) {
     return country_language_mapping[country.toLowerCase()]
@@ -416,191 +595,199 @@ function getCountry(corpus) {
 }
 
 function getGeoJson(country) {
-    var i;
-    for (i = 0; i < countryData["features"].length; i++) {
+    for (var i = 0; i < countryData["features"].length; i++) {
         if (countryData["features"][i]["properties"]["name"].toLowerCase() === country.toLowerCase()) {
             return {"type": "FeatureCollection", "features": [countryData["features"][i]]};
         }
     }
 }
 
-function getCountryReferences(selectedCountry) {
-    countryFreqsOut = {};
-    freqMaxOutgoing = Number.MIN_VALUE;
-    freqMinOutgoing = Number.MAX_VALUE;
+/**
+ * *********************************************************************************************************************
+ * LEGEND
+ * *********************************************************************************************************************
+ */
+var freqMax = Number.MIN_VALUE;
+var freqMin = Number.MAX_VALUE;
+var freqMaxIngoing = Number.MIN_VALUE;
+var freqMinIngoing = Number.MAX_VALUE;
+var freqMaxOutgoing = Number.MIN_VALUE;
+var freqMinOutgoing = Number.MAX_VALUE;
+var legend1 = 100000000;
+var legend2 = 1000000000;
+var legend3 = 2500000000;
+var legend4 = 5000000000;
+var legend5 = 10000000000;
+var legend6 = 20000000000;
+var legend7 = 30000000000;
+var legend8 = 40000000000;
+var legend9 = 50000000000;
+var legend10 = 60000000000;
+var legendCount = 10;
 
-    var beginYear = $('#slider-range').slider("values",0);
-    var endYear = $('#slider-range').slider("values",1);
-    var years = endYear - beginYear;
-
-    var corpus = getCorpus(selectedCountry);
-    var langIndex = countryReferences.languages.indexOf(corpus);
-
-    for (var i = 0; i < mergedData.features.length; i++) {
-        var countryReferencesSum = 0;
-        var country = mergedData.features[i].properties.name;
-        var newFreq = 0;
-
-        for (var j = 0; j < years; j++) {
-            if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(country)) {
-                var currCountryYearReferences = countryReferences[beginYear + j][country];
-                newFreq += currCountryYearReferences[langIndex];
-                countryReferencesSum += currCountryYearReferences.reduce(function (a, b) {
-                    return a + b;
-                }, 0);
-            }
+function calculateLegend() {
+    var curr_min;
+    var curr_max;
+    if (selectedCountry) {
+        if (ingoingReferences) {
+            curr_min = freqMinIngoing;
+            curr_max = freqMaxIngoing;
+        } else {
+            curr_min = freqMinOutgoing;
+            curr_max = freqMaxOutgoing;
         }
-        mergedData.features[i].properties.frequency = newFreq;
-        if (newFreq > freqMaxOutgoing && country.toLowerCase() !== selectedCountry.toLowerCase()) {
-            freqMaxOutgoing = newFreq;
-        }
-        if (newFreq < freqMinOutgoing && country.toLowerCase() !== selectedCountry.toLowerCase()) {
-            freqMinOutgoing = newFreq;
-        }
-        countryFreqsOut[country] = newFreq;
+    } else {
+        curr_min = freqMin;
+        curr_max = freqMax;
+    }
+    var range = curr_max - curr_min;
+    var step = range / legendCount;
+    var significantFigures = 2;
+
+    if (useLogarithmicLegend) {
+        legend1 = logScale(curr_min, curr_max, legendCount, 1) || 0;
+        legend2 = logScale(curr_min, curr_max, legendCount, 2) || 0;
+        legend3 = logScale(curr_min, curr_max, legendCount, 3) || 0;
+        legend4 = logScale(curr_min, curr_max, legendCount, 4) || 0;
+        legend5 = logScale(curr_min, curr_max, legendCount, 5) || 0;
+        legend6 = logScale(curr_min, curr_max, legendCount, 6) || 0;
+        legend7 = logScale(curr_min, curr_max, legendCount, 7) || 0;
+        legend8 = logScale(curr_min, curr_max, legendCount, 8) || 0;
+        legend9 = logScale(curr_min, curr_max, legendCount, 9) || 0;
+        legend10 = logScale(curr_min, curr_max, legendCount, 10) || 0;
+    } else {
+        legend1 = sigFigs(curr_min, significantFigures + 1) || 0;
+        legend2 = sigFigs(curr_min + (step), significantFigures) || 0;
+        legend3 = sigFigs(curr_min + (2 * step), significantFigures) || 0;
+        legend4 = sigFigs(curr_min + (3 * step), significantFigures) || 0;
+        legend5 = sigFigs(curr_min + (4 * step), significantFigures) || 0;
+        legend6 = sigFigs(curr_min + (5 * step), significantFigures) || 0;
+        legend7 = sigFigs(curr_min + (6 * step), significantFigures) || 0;
+        legend8 = sigFigs(curr_min + (7 * step), significantFigures) || 0;
+        legend9 = sigFigs(curr_min + (8 * step), significantFigures) || 0;
+        legend10 = sigFigs(curr_max, significantFigures) || 0;
     }
 }
 
-function getLanguageReferences(selectedCountry) {
-    countryFreqsIn = {};
-    var beginYear = $('#slider-range').slider("values",0);
-    var endYear = $('#slider-range').slider("values",1);
-    var years = endYear - beginYear;
-
-    var length = countryReferences["languages"].length;
-    var data = new Array(length).fill(0);
-
-    var references = [];
-
-    for (var j = 0; j < years; j++) {
-        if (countryReferences.hasOwnProperty(beginYear + j) && countryReferences[beginYear + j].hasOwnProperty(selectedCountry)) {
-            for (var i = 0; i < countryReferences[beginYear + j][selectedCountry].length; i++) {
-                data[i] += countryReferences[beginYear + j][selectedCountry][i];
-            }
-        }
+function logScale(min, max, legendCount, n) {
+    if (min == 0) {
+        min = 1;
     }
-    freqMaxIngoing = Number.MIN_VALUE;
-    freqMinIngoing = Number.MAX_VALUE;
-    function transform(curr_frequency, index) {
-        var country_for_corpus = getCountry(countryReferences['languages'][index]);
-        if (country_for_corpus) {
-            var avgCorpusSizesSum = 0;
-            var corpus = countryReferences['languages'][index];
-            for (var j = beginYear; j < beginYear + years; j++) {
-                if (!isNaN(avgCorpusSizes['corpora'][corpus]['average corpus size'][j])) {
-                    avgCorpusSizesSum += avgCorpusSizes['corpora'][corpus]['average corpus size'][j]
-                }
-            }
-            if (curr_frequency > freqMaxIngoing && country_for_corpus.toLowerCase() !== selectedCountry.toLowerCase()) {
-                freqMaxIngoing = curr_frequency;
-            }
-            if (curr_frequency < freqMinIngoing && country_for_corpus.toLowerCase() !== selectedCountry.toLowerCase()) {
-                freqMinIngoing = curr_frequency;
-            }
-            references.push({
-                'name': country_for_corpus,
-                'frequency': curr_frequency,
-                'avgCorporaSize': Math.ceil(avgCorpusSizesSum / years)
-            });
-            countryFreqsIn[country_for_corpus] = curr_frequency;
-        }
-    }
-    data.forEach(transform);
-    mergedData = mergeCountryFreq(references, maxCorporaSize, countryData, false);
-    return references;
+    var minv = Math.log(min);
+    var maxv = Math.log(max);
+
+    var scale = (maxv - minv) / (legendCount);
+    var result = Math.exp(min + scale * (n - min));
+
+    return sigFigs(result, 2);
 }
 
-function getTopTen(e) {
-	var beginYear = $('#slider-range').slider("values",0);
-	var endYear = $('#slider-range').slider("values",1);
-	var country = e.target.feature.properties.name;
-	httpGetAsync('/topTen?country=' + country + '&start=' + beginYear + '&end=' + endYear, function (response) {
-        var topTen = JSON.parse(response).countries;
-        var content = "<table style=\"width:100%\"> <tr> <th>Country</th> <th>Frequency</th> </tr> ";
-        for(var i = 0; i < topTen.length; i++){
-        	var rec = topTen[i];
-        	content += "<tr> <td> " + rec.name + "</td> <td>" + rec.frequency + "</td> </tr>";
-        }
-        content += "</table>";
+/**
+ * Apply n significant figure rounding to value
+ *
+ * @param value
+ * @param n
+ * @returns {number}
+ */
+function sigFigs(value, n) {
+    var mult = Math.pow(10, n - Math.floor(Math.log(value) / Math.LN10) - 1);
+    var result = Math.floor(value * mult) / mult;
+    result = parseInt(result);
 
-        var popup = L.popup()
-        	.setLatLng(e.latlng)
-        	.setContent(content)
-        	.openOn(map);
-    });
-}
-
-function zoomToFeature(e) {
-//    map.fitBounds(e.target.getBounds());
-	// console.log(e.target.feature.properties.name);
-}
-
-function addGeoJsonMap(data, map, country) {
-    if (!country) {
-        country  = "";
+    //x,999 parseInt funny business workaround
+    if (result % 10 == 9) {
+        result++;
     }
 
-    removeCustomLayer();
-    geojson = L.geoJson(data, {
-        style: style,
-        onEachFeature: onEachFeature,
-        filter: function (feature, layer) {
-            return feature.properties.name.toLowerCase() !== country.toLowerCase();
-        }
-    }).addTo(map);
+    return result;
 }
 
-function getFreqs(beginYear, endYear, extendedCallback) {
-    httpGetAsync('freqs?start=' + beginYear + '&end=' + endYear, function (response) {
-        countryFreq = JSON.parse(response);
-        maxCorporaSize = countryFreq['max corpora size'];
-        mergedData = mergeCountryFreq(countryFreq['countries'], maxCorporaSize, countryData, true);
-        calculateLegend();
-        legend.addTo(map);
-        extendedCallback();
-    });
+
+/**
+ * Color palette for the legend.
+ * @param d
+ * @returns {string}
+ */
+function getColor(d) {
+    // http://colorbrewer2.org/#type=sequential&scheme=YlOrRd&n=9
+
+    return d > legend10 ? '#57000f' :
+            d > legend9 ? '#800026' :
+            d > legend8 ? '#bd0026' :
+            d > legend7 ? '#e31a1c' :
+            d > legend6 ? '#fc4e2a' :
+            d > legend5 ? '#fd8d3c' :
+            d > legend4 ? '#feb24c' :
+            d > legend3 ? '#fed976' :
+            d > legend2 ? '#ffeda0' :
+            d > legend1 ? '#ffffcc' :
+                        '#ffffff';
 }
 
-function getTopTenMentioning(country, beginYear, endYear) {
-	httpGetAsync('topTen?country=' + country + '&start=' + beginYear + '&end=' + endYear, function (response) {
-        var countryFreq = JSON.parse(response);
-        //console.log(countryFreq);
-    });
-	
-}
 
-$(function () {
-    var currYear = new Date().getFullYear();
-    var handle = $( "#custom-handle" );
-    var handle2 = $( "#custom-handle2" );
-    $("#slider-range").slider({
-        range: true,
-        min: 1995,
-        max: currYear,
-        values: [1995, currYear],
-        slide: function (event, ui) {
-            handle.text( ui.values[0] );
-            handle2.text( ui.values[1] );
-            $("#year").val(ui.values[0] + " - " + ui.values[1]);
-        },
-        create: function (event, ui) {
-            handle.text( $( this ).slider( "value" ) );
-            handle2.text( currYear );
-            getFreqs('1995', currYear, function () {
-                addGeoJsonMap(mergedData, map);
-            });
-        },
-        change: function (event, ui) {
-            map.removeLayer(geojson);
-            if (selectedGeojson) {
-                map.removeLayer(selectedGeojson);
-            }
-            getFreqs(ui.values[0], ui.values[1], function () {
-                addGeoJsonMap(mergedData, map);
-            });
-            // fillCountryReferences(selectedCountry);
-        }
-    });
-    $("#year").val($("#slider-range").slider("values", 0) +
-        " - " + $("#slider-range").slider("values", 1));
-});
+
+
+
+
+
+/**
+ * *********************************************************************************************************************
+ * DEPRECATED FUNCTIONS
+ * This is the function graveyard. If they're useful, resurrect them!
+ * *********************************************************************************************************************
+ */
+
+// function getTopTenMentioning(country, beginYear, endYear) {
+//     httpGetAsync('topTen?country=' + country + '&start=' + beginYear + '&end=' + endYear, function (response) {
+//         var countryFreq = JSON.parse(response);
+//         //console.log(countryFreq);
+//     });
+// }
+
+// function getTopTen(e) {
+//     var beginYear = $('#slider-range').slider("values",0);
+//     var endYear = $('#slider-range').slider("values",1);
+//     var country = e.target.feature.properties.name;
+//     httpGetAsync('/topTen?country=' + country + '&start=' + beginYear + '&end=' + endYear, function (response) {
+//         var topTen = JSON.parse(response).countries;
+//         var content = "<table style=\"width:100%\"> <tr> <th>Country</th> <th>Frequency</th> </tr> ";
+//         for(var i = 0; i < topTen.length; i++){
+//             var rec = topTen[i];
+//             content += "<tr> <td> " + rec.name + "</td> <td>" + rec.frequency + "</td> </tr>";
+//         }
+//         content += "</table>";
+//
+//         var popup = L.popup()
+//             .setLatLng(e.latlng)
+//             .setContent(content)
+//             .openOn(map);
+//     });
+// }
+
+// function zoomToFeature(e) {
+//     map.fitBounds(e.target.getBounds());
+//     console.log(e.target.feature.properties.name);
+// }
+
+// $(document).ready(function () {
+//     $("#slider-range").slider({});
+// });
+
+// function getFreqs(beginYear, endYear, extendedCallback) {
+//     httpGetAsync('freqs?start=' + beginYear + '&end=' + endYear, function (response) {
+//         countryFreq = JSON.parse(response);
+//         maxCorporaSize = countryFreq['max corpora size'];
+//         mergedData = mergeCountryFreq(countryFreq['countries'], maxCorporaSize, countryData, true);
+//
+//         extendedCallback();
+//     });
+// }
+
+// function removeCustomLayer() {
+//     if (geojson) {
+//         map.removeLayer(geojson);
+//     }
+//     if (selectedGeojson) {
+//         map.removeLayer(selectedGeojson);
+//     }
+// }
