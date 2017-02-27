@@ -71,7 +71,7 @@
 
         <br>
         <div id="arrowContainer" style="display:table; height: 45px">
-            <span id="selectedCountry" class="countryText" style="display: none">COUNTRY 1</span>
+            <span id="selectedCountry" class="countryText" style="min-width:120px; display: none">COUNTRY 1</span>
             <div id="arrow" class="arrow" onClick="handleToggleReferences()" style="display: none">
                <span id="arrowText" class="arrowText">Outgoing References</span>
             </div>
