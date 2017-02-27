@@ -69,7 +69,6 @@ public class Main {
             String language = FileTools.parseLanguage(fileName);
 
             String tempLang = "";
-            try {
             if(language.contains("-")){
                 tempLang = DatabaseTools.languageKeys.get(language.substring(0, language.lastIndexOf("-")));
             }else{
@@ -78,13 +77,8 @@ public class Main {
             if(tempLang == null){
                 tempLang = "en";
             }
-            } catch (Exception e) {
 
-            }
-
-            if(!allTranslations.containsKey(tempLang)) {
-            	tempLang = "en";
-            } else {
+            if(allTranslations.containsKey(tempLang)) {
                 HashMap<String, Integer> wordFreq = FileTools.importWordFrequencies(path);
 
                 ArrayList<Translation> translations = allTranslations.get(tempLang);
@@ -93,9 +87,9 @@ public class Main {
 
                 DatabaseTools.fillDatabase(translations, wordFreq, year, language, path);
             }
-//            else {
-//                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
-//            }
+            else {
+                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
+            }
         }
 
         System.out.println(ANSI_CYAN + "End time: " + new Date() + ANSI_RESET);
