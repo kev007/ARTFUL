@@ -55,6 +55,7 @@
     <description>
         <title>ARTFUL</title>
         <h1><span style="color: #4D81BF">A</span>n inte<span style="color: #4D81BF">r</span>active coun<span style="color: #4D81BF">t</span>ry re<span style="color: #4D81BF">f</span>erence freq<span style="color: #4D81BF">u</span>ency chorop<span style="color: #4D81BF">l</span>eth mapper</h1>
+
     </description>
 
     <controls>
@@ -71,7 +72,7 @@
         <br>
         <div id="arrowContainer" style="display:table; height: 45px">
             <span id="selectedCountry" class="countryText" style="display: none">COUNTRY 1</span>
-            <div id="arrow" class="arrow" onClick="toggleReferences()" style="display: none">
+            <div id="arrow" class="arrow" onClick="handleToggleReferences()" style="display: none">
                <span id="arrowText" class="arrowText">Outgoing References</span>
             </div>
             <span id="hoverCountry" class="countryText">Select a Country</span>
