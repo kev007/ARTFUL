@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface CountryFreqDao extends CrudRepository<CountryFreq, Long> {
 
-    List<Object[]> findAllByYearBetween(Integer start, Integer end);
+    List<Object[]> findAllOutgoingByYearBetween(Integer start, Integer end);
 
     List<Object[]> findTopTenMentioning(String country, Integer start, Integer end);
 

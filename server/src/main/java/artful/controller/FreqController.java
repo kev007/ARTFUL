@@ -53,19 +53,20 @@ public class FreqController {
         JSONArray countries = new JSONArray();
         response.put("countries", countries);
 
-        List<Object[]> freqs = repository.findAllByYearBetween(start, end);
-
+        List<Object[]> outgoing = repository.findAllOutgoingByYearBetween(start, end);
         final Integer[] maxCorporaSize = {0, 0};
-        freqs.forEach((record) -> {
+        outgoing.forEach((record) -> {
             JSONObject currCountry = new JSONObject();
-            currCountry.put("name", (String) record[0]);
-            currCountry.put("frequency", (Long) record[1]);
-            Integer currCorporaSizeIngoing = (Integer) record[2];
+            String country = (String) record[0];
+            currCountry.put("name", country);
+            currCountry.put("outgoing frequency", (Long) record[1]);
+            currCountry.put("ingoing frequency", (Long) record[2]);
+            Integer currCorporaSizeIngoing = (Integer) record[3];
             currCountry.put("avgCorporaSizeIngoing", currCorporaSizeIngoing);
             if(currCorporaSizeIngoing > maxCorporaSize[0]){
                 maxCorporaSize[0] = currCorporaSizeIngoing;
             }
-            Integer currCorporaSizeOutgoing = (Integer) record[3];
+            Integer currCorporaSizeOutgoing = (Integer) record[4];
             currCountry.put("avgCorporaSizeOutgoing", currCorporaSizeOutgoing);
             if(currCorporaSizeOutgoing > maxCorporaSize[1]){
                 maxCorporaSize[1] = currCorporaSizeOutgoing;
