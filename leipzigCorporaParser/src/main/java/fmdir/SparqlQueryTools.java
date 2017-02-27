@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -33,17 +34,17 @@ public class SparqlQueryTools {
 
 	public static final String parRegex = "\\(([^)]+)\\)";
 	public static final String DBPEDIA_ENDPOINT = "http://dbpedia.org/sparql";
-	
+	public static final String queriesBasePath = "resources/SPARQLQueries/";
+	public static final String translationsBasePath = "resources/translations/";
     
     public static void main(String[] args){
     	if(args.length != 2){
-    		System.err.println("Usage: SparqlQueryTools <Path/to/SPARQLQueries/QueriesFile> <Path/to/output.csv>\n "
-    				+ "It is recommended to place the Queries File in leipzigCorporaParser/resources/SPARQLQueries/ \n And to put the output csv in /leipzigCorporaParser/resources/translations/");
+    		System.err.println("Usage: SparqlQueryTools <queriesFile> <output.csv>\n ");
     	}
     	try {
-			List<String> queries = getQueriesFromFile(new File(args[0]));
+			List<String> queries = getQueriesFromFile(new File(queriesBasePath + args[0]));
 			String resultStr = getResults(queries);
-			writeToFile(new File(args[1]), resultStr);
+			writeToFile(new File(translationsBasePath + args[1]), resultStr);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
