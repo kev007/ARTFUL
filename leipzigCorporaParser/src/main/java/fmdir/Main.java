@@ -70,15 +70,19 @@ public class Main {
 
             String tempLang;
             try {
+            String tempLang = "";
+            if(language.contains("-")){
                 tempLang = DatabaseTools.languageKeys.get(language.substring(0, language.lastIndexOf("-")));
-            } catch (Exception e) {
-                tempLang = "en";
+            }else{
+                tempLang = DatabaseTools.languageKeys.get(language);
             }
             if(tempLang == null){
                 tempLang = "en";
             }
 
-            if(allTranslations.containsKey(tempLang)) {
+            if(!allTranslations.containsKey(tempLang)) {
+            	tempLang = "en";
+            }else{
                 HashMap<String, Integer> wordFreq = FileTools.importWordFrequencies(path);
 
                 ArrayList<Translation> translations = allTranslations.get(tempLang);
@@ -163,5 +167,24 @@ public class Main {
         DatabaseTools.languageKeys.put("por", "pt");
         DatabaseTools.languageKeys.put("rus", "ru");
         DatabaseTools.languageKeys.put("zho", "zh");
+        DatabaseTools.languageKeys.put("bel", "be");
+        DatabaseTools.languageKeys.put("nld", "nl");
+        DatabaseTools.languageKeys.put("kor", "ko");
+        DatabaseTools.languageKeys.put("ell", "el");
+        DatabaseTools.languageKeys.put("glg", "gl");
+        DatabaseTools.languageKeys.put("ron", "ro");
+        DatabaseTools.languageKeys.put("slv", "sl");
+        DatabaseTools.languageKeys.put("ben", "bn");
+        DatabaseTools.languageKeys.put("cat", "ca");
+        DatabaseTools.languageKeys.put("tur", "tr");
+        DatabaseTools.languageKeys.put("kau", "kr");
+        DatabaseTools.languageKeys.put("ind", "in");
+        DatabaseTools.languageKeys.put("lav", "lv");
+        DatabaseTools.languageKeys.put("eus", "eu");
+        DatabaseTools.languageKeys.put("hye", "hy");
+        DatabaseTools.languageKeys.put("gle", "ga");
+        DatabaseTools.languageKeys.put("srp", "sr");
+        DatabaseTools.languageKeys.put("bul", "bg");
+        DatabaseTools.languageKeys.put("ces", "cs");
     }
 }
