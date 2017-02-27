@@ -7,7 +7,7 @@ import javax.persistence.*;
 @Table(name = "country_freq")
 @NamedQueries({
         @NamedQuery(name = "CountryFreq.findAllByYearBetween",
-                query = "SELECT cf.country, SUM(cf.freq) AS freq, cf.avgCorporaSize FROM CountryFreq cf WHERE cf.year BETWEEN ?1 AND ?2 GROUP BY cf.country"),
+                query = "SELECT cf.country, SUM(cf.freq) AS freq, cf.avgCorporaSizeIngoing, cf.avgCorporaSizeOutgoing FROM CountryFreq cf WHERE cf.year BETWEEN ?1 AND ?2 GROUP BY cf.country"),
         @NamedQuery(name = "CountryFreq.findTopTenMentioning",
                 query = "SELECT f.corpus, SUM(f.freq) AS freqpercorp FROM Freq f, Translation t WHERE f.id = t.id AND t.locatedIn = ?1 AND f.year BETWEEN ?2 AND ?3 GROUP BY f.corpus ORDER BY freqpercorp DESC")
 })
@@ -19,8 +19,11 @@ public class CountryFreq {
     private String country;
     private Integer freq;
 
-    @Column(name = "avg_corpora_size")
-    private Integer avgCorporaSize;
+    @Column(name = "avg_corpora_size_ingoing")
+    private Integer avgCorporaSizeIngoing;
+
+    @Column(name = "avg_corpora_size_outgoing")
+    private Integer avgCorporaSizeOutgoing;
     private Integer year;
 
     public String getCountry() {
@@ -47,12 +50,21 @@ public class CountryFreq {
         this.year = year;
     }
 
-    public Integer getAvgCorporaSize() {
-        return avgCorporaSize;
+    public Integer getAvgCorporaSizeIngoing() {
+        return avgCorporaSizeIngoing;
     }
 
-    public void setAvgCorporaSize(Integer avgCorporaSize) {
-        this.avgCorporaSize = avgCorporaSize;
+    public void setAvgCorporaSizeIngoing(Integer avgCorporaSizeIngoing) {
+        this.avgCorporaSizeIngoing = avgCorporaSizeIngoing;
+    }
+
+
+    public Integer getAvgCorporaSizeOutgoing() {
+        return avgCorporaSizeOutgoing;
+    }
+
+    public void setAvgCorporaSizeOutgoing(Integer avgCorporaSizeOutgoing) {
+        this.avgCorporaSizeOutgoing = avgCorporaSizeOutgoing;
     }
 
     @Override
@@ -61,7 +73,8 @@ public class CountryFreq {
                 "id=" + id +
                 ", country='" + country + '\'' +
                 ", freq=" + freq +
-                ", avgCorporaSize=" + avgCorporaSize +
+                ", avgCorporaSizeIngoing=" + avgCorporaSizeIngoing +
+                ", avgCorporaSizeOutgoing=" + avgCorporaSizeOutgoing +
                 ", year=" + year +
                 '}';
     }
