@@ -485,16 +485,16 @@ function mergeCountryFreq(countries, maxCorporaSize, geoJSON, doNormalize) {
                     var averageCorporaSize;
                     var countryFrequency;
                     if (ingoingReferences) {
-                        averageCorporaSize = country.avgCorporaSizeIngoing;
+                        averageCorporaSize = country.avgCorporaSizeOutgoing;
                         if(averageCorporaSize == 0) {
-                            averageCorporaSize = 10000;
+                            averageCorporaSize = countryFreq['max corpora size ingoing']/2;
                         }
                         countryFrequency = country['ingoing frequency'];
                     } else {
-                        averageCorporaSize = country.avgCorporaSizeOutgoing;
+                        averageCorporaSize = country.avgCorporaSizeIngoing;
                         countryFrequency = country['outgoing frequency'];
                         if(averageCorporaSize == 0) {
-                            averageCorporaSize = 10000;
+                            averageCorporaSize = countryFreq['max corpora size outgoing']/2;
                         }
                     }
 
