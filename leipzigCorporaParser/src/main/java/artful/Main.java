@@ -26,14 +26,14 @@ public class Main {
 
 
     public static void main(String[] args) {
-    	fillLanguageKeys();
         long startTime = System.currentTimeMillis();
         System.out.println(ANSI_CYAN + "Start time: " + new Date() + ANSI_RESET);
+
+        //read config
         readConfig();
 
         /**
          * CAUTION
-         * TEST FUNCTION
          *
          * DELETES ALL ROWS
          */
@@ -60,14 +60,15 @@ public class Main {
         //Iterate through all files, get all word frequencies, and pass them on to the database filler
         int currentCorpora = 0;
         for (Path path: allFreqPaths) {
-            currentCorpora++;
             long parseStart = System.currentTimeMillis();
+            currentCorpora++;
 
             String fileName = path.getFileName().toString();
-
             String year = FileTools.parseYear(fileName);
             String language = FileTools.parseLanguage(fileName);
 
+            //language mapping
+            fillLanguageKeys();
             String tempLang = "";
             if(language.contains("-")){
                 tempLang = DatabaseTools.languageKeys.get(language.substring(0, language.lastIndexOf("-")));
@@ -78,9 +79,8 @@ public class Main {
                 tempLang = "en";
             }
 
-            if(!allTranslations.containsKey(tempLang)) {
-            	tempLang = "en";
-            } else {
+            //if translations for a corpora exist, find frequencies for the translations and fill the database
+            if(allTranslations.containsKey(tempLang)) {
                 HashMap<String, Integer> wordFreq = FileTools.importWordFrequencies(path);
 
                 ArrayList<Translation> translations = allTranslations.get(tempLang);
@@ -89,9 +89,9 @@ public class Main {
 
                 DatabaseTools.fillDatabase(translations, wordFreq, year, language, path);
             }
-//            else {
-//                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
-//            }
+            else {
+                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
+            }
         }
 
         System.out.println(ANSI_CYAN + "End time: " + new Date() + ANSI_RESET);

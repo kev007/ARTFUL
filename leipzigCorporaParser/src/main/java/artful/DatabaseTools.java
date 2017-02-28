@@ -34,7 +34,7 @@ public class DatabaseTools {
      */
     public static void fillDatabase(ArrayList<Translation> translations, HashMap<String, Integer> wordFreq, String year, String language, Path path) {
         try {
-            Class.forName(driverName).newInstance();
+//            Class.forName(driverName).newInstance();
 //            Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Main.prop.getProperty("dbPath"));
 
             Connection connection = newInMemoryDatabase();
@@ -148,7 +148,7 @@ public class DatabaseTools {
     }
 
     /**
-     * Creates an in-memory database using the on file database
+     * Creates an in-memory database using the on file database, if available
      * @return
      * @throws Exception
      */
@@ -201,6 +201,9 @@ public class DatabaseTools {
         }
     }
 
+    /**
+     * Resets the autoincrement counter for the id in the corpora table
+     */
     public static void resetIncrementSequence () {
         try {
             Class.forName(driverName).newInstance();
@@ -342,6 +345,10 @@ public class DatabaseTools {
         }
     }
 
+    /**
+     * Deletes all rows in the specified table
+     * @param tableName
+     */
     public static void deleteAllRows(String tableName) {
         System.out.println("Deleting table contents: " + tableName);
         try {
@@ -363,6 +370,9 @@ public class DatabaseTools {
         }
     }
 
+    /**
+     * Prints the database row total to console
+     */
     public static void printCount() {
         try {
             Class.forName(driverName).newInstance();
