@@ -31,17 +31,24 @@
                 <version>1.5.0</version>
                 <executions>
                     <execution>
+                        <id>sparql</id>
                         <goals>
                             <goal>java</goal>
                         </goals>
+                        <configuration>
+                            <mainClass>main.java.artful.SparqlQueryTools</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>parser</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>main.java.artful.Main</mainClass>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <mainClass>main.java.artful.Main</mainClass>
-                    <arguments>
-                        <!--<argument>argument1</argument>-->
-                    </arguments>
-                </configuration>
             </plugin>
         </plugins>
     </build>
