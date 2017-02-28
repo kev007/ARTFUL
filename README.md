@@ -1,7 +1,8 @@
 # ARTFUL
 **A**n inte**R**active coun**T**ry re**F**erence freq**U**ency chorop**L**eth mapper
 
-A graphical representation of inter-country entity references in multilingual corpora in webapp form.
+Interactive Leaflet web application using the University of Leipzig Corpora Collection:
+A graphical representation of inter-country entity references in multilingual corpora.
 
 ## Dependencies
 
@@ -39,3 +40,6 @@ cp artful.war /usr/share/tomcat/webapps
 ```
 
 **Note**: The tomcat path may be different. 
+
+### Screenshots
+![User Interface](/GUI-Screenshot.PNG)
