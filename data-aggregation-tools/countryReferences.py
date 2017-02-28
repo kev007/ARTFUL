@@ -11,6 +11,8 @@ from pandas import DataFrame
 Generate the country references for the client. The references are separated by the year.
 The country-references-file is static and will be automatically loaded when the page is loading.
 
+Note: Running this script may take very long (over 30 minutes at least)!
+
 Input: database entities: freq, translation, corpora
 Output: country-references-file (see config.conf)
 """

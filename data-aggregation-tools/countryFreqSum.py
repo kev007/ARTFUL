@@ -11,6 +11,8 @@ where located_in = country B.
 Ingoing references from country A to B are based on the corpus of country B with all references(entries in freq)
 where located_in = country B.
 
+Note: Running this script may take very long (over 30 minutes at least)!
+
 Input: database entities: freq, translation
 Output: Inserts the generated values into the country_freq table.
 """
