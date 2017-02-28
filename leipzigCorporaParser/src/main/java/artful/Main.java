@@ -90,7 +90,7 @@ public class Main {
                 DatabaseTools.fillDatabase(translations, wordFreq, year, language, path);
             }
             else {
-                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET);
+                System.out.println(ANSI_BLUE + "(" + currentCorpora + "/" + allFreqPaths.size() + ") - " +  year + " " + language + ANSI_YELLOW + "\t Unknown Language: " + ANSI_RED + language + ANSI_RESET + " \t " + path.getFileName());
             }
         }
 
@@ -151,7 +151,10 @@ public class Main {
         }
 
     }
-    
+
+    /**
+     * Language mapping for languages returned by DBPedia
+     */
     static void fillLanguageKeys(){
         DatabaseTools.languageKeys = new HashMap<String, String>();
         DatabaseTools.languageKeys.put("ara", "ar");
