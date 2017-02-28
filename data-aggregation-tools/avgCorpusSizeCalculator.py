@@ -4,6 +4,12 @@ import configparser
 import sqlite3
 import json
 
+"""
+Generate the average size of all corpora
+Input: database entities: freq, corpora
+Output: average-corpus-size-file (see config.conf)
+"""
+
 config = configparser.ConfigParser()
 config.read('config.conf')
 connection = sqlite3.connect(config.get('database', 'file'))

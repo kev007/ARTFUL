@@ -4,6 +4,19 @@ import configparser
 import csv
 import sqlite3
 
+"""
+Aggregate the references for each country to and from each country.
+Outgoing references from country A to B are based on the corpus of country A with all references(entries in freq)
+where located_in = country B.
+Ingoing references from country A to B are based on the corpus of country B with all references(entries in freq)
+where located_in = country B.
+
+Note: Running this script may take very long (over 30 minutes at least)!
+
+Input: database entities: freq, translation
+Output: Inserts the generated values into the country_freq table.
+"""
+
 config = configparser.ConfigParser()
 config.read('config.conf')
 
@@ -65,38 +78,37 @@ for locatedIn in locatedIns:
         print("missing language code for: " + locatedIn)
     else:
         for year in years:
-            avgOutgoingCorporaSizeQuery = "SELECT round(sum(size) * 1.0 / count(*)) FROM corpora " \
-                                          "WHERE id IN " \
-                                          "(SELECT DISTINCT corporaID FROM freq f, translation t " \
-                                          "WHERE f.translation_id = t.id AND t.located_in = '{}' AND f.year = {})" \
+            avgIngoingCorporaSizeQuery = "SELECT round(sum(size) * 1.0 / count(*)) FROM corpora " \
+                                         "WHERE id IN " \
+                                         "(SELECT DISTINCT corporaID FROM freq f, translation t " \
+                                         "WHERE f.translation_id = t.id AND t.located_in = '{}' AND f.year = {})" \
                 .format(locatedIn, year)
-            cursor.execute(avgOutgoingCorporaSizeQuery)
-            avgOutgoingCorporaSize = cursor.fetchone()[0]
+            cursor.execute(avgIngoingCorporaSizeQuery)
+            avgIngoingCorporaSize = cursor.fetchone()[0]
             lang = inv_mapping[locatedIn.lower()]
-            avgIngoingReferencesCorpusSizeQuery = "SELECT round(sum(size) * 1.0 / count(*)) FROM corpora " \
-                                                  "WHERE lang = '{}' AND year = {}" \
+            avgOutgoingReferencesCorpusSizeQuery = "SELECT round(sum(size) * 1.0 / count(*)) FROM corpora " \
+                                                   "WHERE lang = '{}' AND year = {}" \
                 .format(lang, year)
-            cursor.execute(avgIngoingReferencesCorpusSizeQuery)
-            avgIngoingReferencesCorpusSize = cursor.fetchone()[0]
-            if avgIngoingReferencesCorpusSize is None:
-                avgIngoingReferencesCorpusSize = 0
-            if avgOutgoingCorporaSize is None:
-                avgOutgoingCorporaSize = 0
+            cursor.execute(avgOutgoingReferencesCorpusSizeQuery)
+            avgOutgoingReferencesCorpusSize = cursor.fetchone()[0]
+            if avgOutgoingReferencesCorpusSize is None:
+                avgOutgoingReferencesCorpusSize = 0
+            if avgIngoingCorporaSize is None:
+                avgIngoingCorporaSize = 0
             corpus = inv_mapping[locatedIn.lower()]
-            ingoingReferencesQuery = "SELECT sum(freq)  AS freq_outgoing FROM freq f, translation t " \
-                                     "WHERE f.translation_id = t.id AND f.corpus = '{}' AND f.year = {}" \
+            outgoingReferencesQuery = "SELECT sum(freq) AS freq_outgoing FROM freq f, translation t " \
+                                      "WHERE f.translation_id = t.id AND f.corpus = '{}' AND f.year = {}" \
                 .format(corpus, year)
-            cursor.execute(ingoingReferencesQuery)
-            ingoingReferences = cursor.fetchone()[0]
-            if ingoingReferences is None:
-                ingoingReferences = 0
-            insert = "INSERT INTO `country_freq`(country, freq_ingoing, freq_outgoing, year, " \
+            cursor.execute(outgoingReferencesQuery)
+            outgoingReferences = cursor.fetchone()[0]
+            if outgoingReferences is None:
+                outgoingReferences = 0
+            insert = "INSERT INTO `country_freq`(country, freq_outgoing, freq_ingoing, year, " \
                      "avg_corpora_size_ingoing, avg_corpora_size_outgoing)" \
                      " SELECT located_in AS country, {}, sum(freq) AS freq_outgoing, f.year, {}, {} " \
                      " FROM freq f, translation t" \
                      " WHERE f.translation_id = t.id AND t.located_in = '{}' AND f.year = {};" \
-                .format(ingoingReferences, avgIngoingReferencesCorpusSize, avgOutgoingCorporaSize, locatedIn, year)
-            # print(insert)
+                .format(outgoingReferences, avgIngoingCorporaSize, avgOutgoingReferencesCorpusSize, locatedIn, year)
             cursor.execute(insert)
             connection.commit()
 connection.close()

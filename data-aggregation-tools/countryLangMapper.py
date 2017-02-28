@@ -5,6 +5,19 @@ import csv
 import json
 import sqlite3
 
+"""
+Creates a mapping from country to language and language to country.
+To modify the mapping, add, modify or delete the entries in country-code.csv. The first value per line is the country
+name, every following value (up to 3, separated by ";") contains a possible mapping for the language of the country.
+Note: If there are multiple matches inside a line, the later one will be preferred.
+
+Input: country-code.csv
+Output:
+- language-country-mapping (see config.conf)
+- country-language-mapping (see config.conf)
+- ../server/src/main/resources/language-country-mapping.properties
+"""
+
 config = configparser.ConfigParser()
 config.read('config.conf')
 
@@ -49,8 +62,16 @@ for corpus in corpora:
 
 inv_mapping = {v: k for k, v in mappings.items()}
 
+language_country_properties = "# This file is generated, all changes will be overwritten!" \
+                              " Change country-code.csv instead.\n"
+for language in inv_mapping:
+    language_country_properties += language.replace(' ', '\u0020') + "=" + inv_mapping[language] + "\n"
+
 with open(config.get('server', 'language-country-mapping'), "w+") as result_file:
     result_file.write("var language_country_mapping = " + json.dumps(mappings) + ";")
 
 with open(config.get('server', 'country-language-mapping'), "w+") as result_file:
     result_file.write("var country_language_mapping = " + json.dumps(inv_mapping) + ";")
+
+with open("../server/src/main/resources/language-country-mapping.properties", "w+") as result_file:
+    result_file.write(language_country_properties)

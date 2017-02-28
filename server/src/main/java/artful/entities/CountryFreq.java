@@ -6,9 +6,9 @@ import javax.persistence.*;
 @Table(name = "country_freq")
 @NamedQueries({
         @NamedQuery(name = "CountryFreq.findAllOutgoingByYearBetween",
-                query = "SELECT cf.country, SUM(cf.freq_ingoing) AS freq_ingoing, SUM(cf.freq_outgoing) AS freq_outgoing, cf.avgCorporaSizeIngoing, cf.avgCorporaSizeOutgoing FROM CountryFreq cf WHERE cf.year BETWEEN ?1 AND ?2 GROUP BY cf.country"),
-        @NamedQuery(name = "CountryFreq.findTopTenMentioning",
-                query = "SELECT f.corpus, SUM(f.freq) AS freqpercorp FROM Freq f, Translation t WHERE f.id = t.id AND t.locatedIn = ?1 AND f.year BETWEEN ?2 AND ?3 GROUP BY f.corpus ORDER BY freqpercorp DESC")
+                query = "SELECT cf.country, SUM(cf.freq_ingoing) AS freq_ingoing, SUM(cf.freq_outgoing) AS freq_outgoing, avg(cf.avgCorporaSizeIngoing) FROM CountryFreq cf WHERE cf.year BETWEEN ?1 AND ?2 GROUP BY cf.country"),
+        @NamedQuery(name = "CountryFreq.getAvgCorpusSizes",
+                query = "SELECT lang, avg(size) FROM Corpora WHERE year BETWEEN ?1 AND ?2 GROUP BY lang"),
 })
 public class CountryFreq {
 
