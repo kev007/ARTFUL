@@ -113,13 +113,23 @@ function initLeafletMap() {
                 currCountryFreq = props.frequency;
                 totalCountryReferencesSelected = countryFreqSum;
             }
+            if (selectedCountry) {
+                document.getElementById('selectedCountry').textContent = selectedCountry;
+                document.getElementById('hoverCountry').textContent = props.name;
+                document.getElementById('hoverFreq').innerHTML = currCountryFreq ? numberWithCommas(currCountryFreq)
+                    + " (" + ((currCountryFreq / totalCountryReferencesSelected) * 100)
+                        .toFixed(2) + "&#37;) "
+                    : numberWithCommas(props.frequency);
+            } else {
+                document.getElementById('selectedCountry').textContent = props.name;
+                // document.getElementById('hoverCountry').textContent = props.name;
+                document.getElementById('hoverFreq').innerHTML = currCountryFreq ? numberWithCommas(currCountryFreq)
+                    + " (" + ((currCountryFreq / totalCountryReferencesSelected) * 100)
+                        .toFixed(2) + "&#37;) "
+                    : numberWithCommas(props.frequency);
+            }
 
-            document.getElementById('selectedCountry').textContent = selectedCountry;
-            document.getElementById('hoverCountry').textContent = props.name;
-            document.getElementById('hoverFreq').innerHTML = currCountryFreq ? numberWithCommas(currCountryFreq)
-                + " (" + ((currCountryFreq / totalCountryReferencesSelected) * 100)
-                    .toFixed(2) + "&#37;) "
-                : numberWithCommas(props.frequency);
+
 
             document.getElementById('hoverCountry').style.display='table-cell';
             document.getElementById('hoverFreq').style.display='table-cell';
@@ -256,7 +266,13 @@ function handleYearChange(start, end) {
 function handleToggleReferences() {
     ingoingReferences = !ingoingReferences;
 
-    doDirectionalCountryReferences();
+    if(selectedCountry) {
+        //case: a country is selected, direction changed
+        doDirectionalCountryReferences();
+    } else {
+        //case: a country is not selected, direction changed
+        doReferenceTotals();
+    }
 }
 
 /**
@@ -415,7 +431,13 @@ function doReferenceTotals() {
 
     httpGetAsync('freqs?start=' + startYear + '&end=' + endYear, function (response) {
         countryFreq = JSON.parse(response);
-        maxCorporaSize = countryFreq['max corpora size'];
+        var maxCorporaSize;
+        if (ingoingReferences) {
+            maxCorporaSize = countryFreq['max corpora size ingoing'];
+        } else {
+            maxCorporaSize = countryFreq['max corpora size outgoing'];
+        }
+
         mergedData = mergeCountryFreq(countryFreq['countries'], maxCorporaSize, countryData, true);
 
         updateGUI();
@@ -460,12 +482,29 @@ function mergeCountryFreq(countries, maxCorporaSize, geoJSON, doNormalize) {
             for (var i = 0; i < mergedData.features.length; i++) {
                 if (mergedData.features[i].properties.name.toLowerCase() === country.name.toLowerCase()) {
                     var frequency_multiplier;
-                    frequency_multiplier = maxCorporaSize / country.avgCorporaSize;
+                    var averageCorporaSize;
+                    var countryFrequency;
+                    if (ingoingReferences) {
+                        averageCorporaSize = country.avgCorporaSizeIngoing;
+                        if(averageCorporaSize == 0) {
+                            averageCorporaSize = 10000;
+                        }
+                        countryFrequency = country['ingoing frequency'];
+                    } else {
+                        averageCorporaSize = country.avgCorporaSizeOutgoing;
+                        countryFrequency = country['outgoing frequency'];
+                        if(averageCorporaSize == 0) {
+                            averageCorporaSize = 10000;
+                        }
+                    }
+
+                    frequency_multiplier = maxCorporaSize / averageCorporaSize;
+                    console.log(averageCorporaSize + country.name + countryFrequency);
 
                     if (doNormalize) {
-                        normalized_freq = Math.ceil(country.frequency * (frequency_multiplier));
+                        normalized_freq = Math.ceil(countryFrequency * (frequency_multiplier));
                     } else {
-                        normalized_freq = country.frequency;
+                        normalized_freq = countryFrequency;
                     }
                     mergedData.features[i].properties.frequency = normalized_freq;
                     countryFreqSum += normalized_freq;
@@ -526,8 +565,10 @@ function updateGUI() {
         document.getElementById('selectedCountry').style.display='table-cell';
         document.getElementById('arrow').style.display='inline-block';
     } else {
-        document.getElementById('selectedCountry').style.display='none';
-        document.getElementById('arrow').style.display='none';
+        // document.getElementById('selectedCountry').style.display='none';
+        document.getElementById('selectedCountry').style.display='table-cell';
+        // document.getElementById('arrow').style.display='none';
+        document.getElementById('arrow').style.display='inline-block';
     }
 
     calculateLegend();
