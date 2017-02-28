@@ -1,4 +1,4 @@
-package main.java.fmdir;
+package main.java.artful;
 
 /**
  * Created by kev_s on 08.11.2016.
