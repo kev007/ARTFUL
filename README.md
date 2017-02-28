@@ -1,16 +1,24 @@
 # ARTFUL
 **A**n inte**R**active coun**T**ry re**F**erence freq**U**ency chorop**L**eth mapper
 
-Shows graphically how countries mention entities of other countries
+A graphical representation of inter-country entity references in multilingual corpora in webapp form.
+
+## Dependencies
+
+* Java 8
+* Maven
+* Python 3
+* Pip3
 
 ## Installation
 
-The application can simply be run with maven:
+The web application can simply be run with maven:
 ```
 cd server
-mvn clean spring-boot:run -Dtranslation_database=src/main/resources/translations.sqlite
+mvn clean install 
+mvn spring-boot:run -Dtranslation_database=src/main/resources/translations.sqlite
 ```
-If you want to use the scripts to enhance the database you might have to install some dependencies
+If you want to use the included scripts to add new data to the database you need to install some dependencies
 ```
 cd data-aggregation-tools/
 sudo pip3 install -r requirements.txt 
