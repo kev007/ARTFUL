@@ -65,7 +65,7 @@ inv_mapping = {v: k for k, v in mappings.items()}
 language_country_properties = "# This file is generated, all changes will be overwritten!" \
                               " Change country-code.csv instead.\n"
 for language in inv_mapping:
-    language_country_properties += language.replace(' ', '\u0020') + "=" + inv_mapping[language] + "\n"
+    language_country_properties += language.replace(' ', '\ ') + "=" + inv_mapping[language] + "\n"
 
 with open(config.get('server', 'language-country-mapping'), "w+") as result_file:
     result_file.write("var language_country_mapping = " + json.dumps(mappings) + ";")
