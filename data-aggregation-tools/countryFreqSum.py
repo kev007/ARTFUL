@@ -4,6 +4,17 @@ import configparser
 import csv
 import sqlite3
 
+"""
+Aggregate the references for each country to and from each country.
+Outgoing references from country A to B are based on the corpus of country A with all references(entries in freq)
+where located_in = country B.
+Ingoing references from country A to B are based on the corpus of country B with all references(entries in freq)
+where located_in = country B.
+
+Input: database entities: freq, translation
+Output: Inserts the generated values into the country_freq table.
+"""
+
 config = configparser.ConfigParser()
 config.read('config.conf')
 

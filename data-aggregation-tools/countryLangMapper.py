@@ -5,6 +5,19 @@ import csv
 import json
 import sqlite3
 
+"""
+Creates a mapping from country to language and language to country.
+To modify the mapping, add, modify or delete the entries in country-code.csv. The first value per line is the country
+name, every following value (up to 3, separated by ";") contains a possible mapping for the language of the country.
+Note: If there are multiple matches inside a line, the later one will be preferred.
+
+Input: country-code.csv
+Output:
+- language-country-mapping (see config.conf)
+- country-language-mapping (see config.conf)
+- ../server/src/main/resources/language-country-mapping.properties
+"""
+
 config = configparser.ConfigParser()
 config.read('config.conf')
 
