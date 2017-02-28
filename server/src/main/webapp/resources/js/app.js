@@ -431,12 +431,7 @@ function doReferenceTotals() {
 
     httpGetAsync('freqs?start=' + startYear + '&end=' + endYear, function (response) {
         countryFreq = JSON.parse(response);
-        var maxCorporaSize;
-        if (ingoingReferences) {
-            maxCorporaSize = countryFreq['max corpora size ingoing'];
-        } else {
-            maxCorporaSize = countryFreq['max corpora size outgoing'];
-        }
+        var maxCorporaSize = countryFreq['max corpora size'];
 
         mergedData = mergeCountryFreq(countryFreq['countries'], maxCorporaSize, countryData, true);
 
