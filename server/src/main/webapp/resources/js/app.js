@@ -371,8 +371,8 @@ function getLanguageReferences() {
             }
             references.push({
                 'name': country_for_corpus,
-                'frequency': curr_frequency,
-                'avgCorporaSize': Math.ceil(avgCorpusSizesSum / numOfYears)
+                'ingoing frequency': curr_frequency,
+                'avgCorporaSizeIngoing': Math.ceil(avgCorpusSizesSum / numOfYears)
             });
             countryFreqsIn[country_for_corpus] = curr_frequency;
         }
@@ -499,7 +499,7 @@ function mergeCountryFreq(countries, maxCorporaSize, geoJSON, doNormalize) {
                     }
 
                     frequency_multiplier = maxCorporaSize / averageCorporaSize;
-                    console.log(averageCorporaSize + country.name + countryFrequency);
+                    // console.log(averageCorporaSize + country.name + countryFrequency);
 
                     if (doNormalize) {
                         normalized_freq = Math.ceil(countryFrequency * (frequency_multiplier));
