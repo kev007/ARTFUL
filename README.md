@@ -36,7 +36,8 @@ OR
 ```
 cd leipzigCorporaParser
 mvn clean install
-mvn exec:java
+mvn exec:java@sparql
+mvn exec:java@parser
 ```
 
 ![Parsing new data](https://cloud.githubusercontent.com/assets/3058438/23328551/e97470e8-fb23-11e6-90a0-52ef1fdd17c4.png
