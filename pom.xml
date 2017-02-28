@@ -13,14 +13,7 @@
 
     <modules>
         <module>leipzigCorporaParser</module>
+        <!--<module>data-aggregation-tools</module>-->
         <module>server</module>
     </modules>
-    <dependencies>
-	<dependency>
-    	<groupId>org.apache.jena</groupId>
-    	<artifactId>apache-jena-libs</artifactId>
-    	<type>pom</type>
-    <version>3.1.0</version>
-  </dependency>
-    </dependencies>
 </project>
