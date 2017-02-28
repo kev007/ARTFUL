@@ -56,7 +56,8 @@ public class FreqController {
             currCountry.put("outgoing frequency", (Long) record[2]);
             Double currCorporaSizeIngoing = (Double) record[3];
             String language = props.getProperty(country.toLowerCase());
-            currCountry.put("avgCorporaSizeOutgoing", avgCorpusSizesMap.get(language));
+            Double avgCorpusSize = avgCorpusSizesMap.get(language);
+            currCountry.put("avgCorporaSizeOutgoing", avgCorpusSize);
             if (currCorporaSizeIngoing > maxCorporaSize[0]) {
                 maxCorporaSize[0] = currCorporaSizeIngoing;
             }
