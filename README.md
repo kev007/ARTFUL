@@ -25,6 +25,21 @@ cd data-aggregation-tools/
 sudo pip3 install -r requirements.txt 
 ```
 
+## Usage
+To import new data:
+
+Copy extracted Leipzig Corpora **-words.txt* word frequency files to *leipzigCorporaParser/resources/txt* and/or add non-default paths to config.properties
+run Main.java 
+OR
+```
+cd leipzigCorporaParser
+mvn clean install
+mvn exec:java
+```
+
+![Parsing new data](https://cloud.githubusercontent.com/assets/3058438/23328551/e97470e8-fb23-11e6-90a0-52ef1fdd17c4.png
+)
+
 ## Datasource
 - GeoJSON Data to colorize the countries is from <https://geojson-maps.kyd.com.au/>
 - Word frequencies are from <http://corpora.uni-leipzig.de/de>
@@ -43,3 +58,4 @@ cp artful.war /usr/share/tomcat/webapps
 
 ### Screenshots
 ![User Interface](/GUI-Screenshot.PNG)
+
