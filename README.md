@@ -29,7 +29,9 @@ sudo pip3 install -r requirements.txt
 To import new data:
 
 Copy extracted Leipzig Corpora **-words.txt* word frequency files to *leipzigCorporaParser/resources/txt* and/or add non-default paths to config.properties
-run Main.java 
+
+*run Main.java and SparqlQueryTools.java*
+
 OR
 ```
 cd leipzigCorporaParser
